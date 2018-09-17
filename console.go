@@ -8,17 +8,26 @@ import (
 
 	"time"
 
+	"sort"
+
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
 // Console represents a emulated console view
 type Console struct {
-	Title   string
-	Width   int
-	Height  int
-	Font    *Font
-	ShowFPS bool
+	Title       string
+	Width       int
+	Height      int
+	Font        *Font
+	ShowFPS     bool
+	SubConsoles []*Console
+
+	parent       *Console
+	x            int
+	y            int
+	priority     int
+	isSubConsole bool
 
 	mtx       *sync.RWMutex
 	updates   []int
@@ -48,29 +57,99 @@ func NewConsole(width, height int, font *Font, title string) (*Console, error) {
 	}
 
 	return &Console{
-		Title:   title,
-		Width:   width,
-		Height:  height,
-		Font:    font,
-		mtx:     new(sync.RWMutex),
-		updates: make([]int, 0),
-		buffer:  buf,
-		lines:   lines,
+		Title:       title,
+		Width:       width,
+		Height:      height,
+		Font:        font,
+		SubConsoles: make([]*Console, 0),
+		mtx:         new(sync.RWMutex),
+		updates:     make([]int, 0),
+		buffer:      buf,
+		lines:       lines,
 	}, nil
 }
 
 // SetPreRenderHook will apply a hook that gets triggered before the console started rendering
-func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) {
+func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) error {
+	if c.isSubConsole {
+		return fmt.Errorf("can't hook into sub-console")
+	}
 	c.preRenderHook = hook
+	return nil
 }
 
 // SetPostRenderHook will apply a hook that gets triggered after the console is finished rendering
-func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) {
+func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) error {
+	if c.isSubConsole {
+		return fmt.Errorf("can't hook into sub-console")
+	}
 	c.preRenderHook = hook
+	return nil
+}
+
+// SetPriority sets the priority of the console. A higher priority will result in the console
+// being drawn on top of all the ones with lower priority.
+func (c *Console) SetPriority(priority int) error {
+	if !c.isSubConsole {
+		return fmt.Errorf("priority of the main console can't be changed")
+	}
+	c.priority = priority
+	c.parent.sortSubConsoles()
+	return nil
+}
+
+// CreateSubConsole creates a new sub-console
+func (c *Console) CreateSubConsole(x, y, width, height int) (*Console, error) {
+	if x < 0 || y < 0 || x+width > c.Width || y+height > c.Height || width <= 0 || height <= 0 {
+		return nil, fmt.Errorf("sub-console is out of bounds")
+	}
+
+	c.mtx.Lock()
+
+	sub, err := NewConsole(width, height, c.Font, "")
+	if err != nil {
+		return nil, err
+	}
+
+	sub.parent = c
+	sub.x = x
+	sub.y = y
+	sub.isSubConsole = true
+
+	c.SubConsoles = append(c.SubConsoles, sub)
+
+	c.mtx.Unlock()
+
+	c.sortSubConsoles()
+
+	return sub, nil
+}
+
+// RemoveSubConsole removes a sub-console from his parent
+func (c *Console) RemoveSubConsole(con *Console) error {
+	c.mtx.Lock()
+	for i := range c.SubConsoles {
+		if c.SubConsoles[i] == con {
+			c.SubConsoles[i] = c.SubConsoles[len(c.SubConsoles)-1]
+			c.SubConsoles[len(c.SubConsoles)-1] = nil
+			c.SubConsoles = c.SubConsoles[:len(c.SubConsoles)-1]
+			c.mtx.Unlock()
+
+			c.sortSubConsoles()
+
+			return nil
+		}
+	}
+	c.mtx.Unlock()
+	return fmt.Errorf("sub-console not found")
 }
 
 // Start will open the console window with the given scale
 func (c *Console) Start(scale float64) error {
+	if c.isSubConsole {
+		return fmt.Errorf("only the main console can be started")
+	}
+	c.ClearAll()
 	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
 }
 
@@ -241,6 +320,14 @@ func (c *Console) Clear(x, y, width, height int) {
 	c.mtx.Unlock()
 }
 
+func (c *Console) sortSubConsoles() {
+	c.mtx.Lock()
+	sort.Slice(c.SubConsoles, func(i, j int) bool {
+		return c.SubConsoles[i].priority > c.SubConsoles[j].priority
+	})
+	c.mtx.Unlock()
+}
+
 func (c *Console) queueUpdate(x int) {
 	for i := range c.updates {
 		if c.updates[i] == x {
@@ -279,6 +366,29 @@ func (c *Console) updateLine(x int) {
 	}
 }
 
+func (c *Console) flushUpdates() {
+	for i := range c.updates {
+		c.updateLine(c.updates[i])
+	}
+
+	if len(c.updates) > 0 {
+		c.updates = make([]int, 0)
+	}
+}
+
+func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
+	c.flushUpdates()
+	for x := range c.buffer {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64((x+c.x+offsetX)*c.Font.TileWidth), float64((c.y+offsetY)*c.Font.TileHeight))
+		screen.DrawImage(c.lines[x], op)
+	}
+
+	for i := range c.SubConsoles {
+		c.SubConsoles[i].draw(screen, offsetX+c.x, offsetY+c.x)
+	}
+}
+
 func (c *Console) update(screen *ebiten.Image) error {
 	if ebiten.IsDrawingSkipped() {
 		return nil
@@ -297,21 +407,7 @@ func (c *Console) update(screen *ebiten.Image) error {
 	}
 
 	c.mtx.RLock()
-
-	for i := range c.updates {
-		c.updateLine(c.updates[i])
-	}
-
-	if len(c.updates) > 0 {
-		c.updates = make([]int, 0)
-	}
-
-	for x := range c.buffer {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64(x*c.Font.TileWidth), 0)
-		screen.DrawImage(c.lines[x], op)
-	}
-
+	c.draw(screen, 0, 0)
 	c.mtx.RUnlock()
 
 	if c.postRenderHook != nil {
