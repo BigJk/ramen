@@ -161,7 +161,7 @@ func (c *Console) PrintFmt(x, y int, format string, foreground Color, a ...inter
 	}
 }
 
-// PrintFmt prints a formatted string on the console with a given foreground and background color
+// PrintFmtEx prints a formatted string on the console with a given foreground and background color
 func (c *Console) PrintFmtEx(x, y int, format string, foreground Color, background Color, a ...interface{}) {
 	text := fmt.Sprintf(format, a...)
 	for i := range text {

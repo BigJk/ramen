@@ -1,5 +1,6 @@
 package ramen
 
+// ColorType represents a identifier to differentiate between a foreground and background color
 type ColorType int
 
 const (
