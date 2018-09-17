@@ -6,6 +6,8 @@ import (
 
 	"image/color"
 
+	"time"
+
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
@@ -18,14 +20,15 @@ type Console struct {
 	Font    *Font
 	ShowFPS bool
 
-	mtx     *sync.RWMutex
-	updates []int
-	buffer  [][]Cell
+	mtx       *sync.RWMutex
+	updates   []int
+	buffer    [][]Cell
+	lastFrame int64
 
 	lines []*ebiten.Image
 
-	preRenderHook  func(screen *ebiten.Image) error
-	postRenderHook func(screen *ebiten.Image) error
+	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
+	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
 
 // NewConsole creates a new console
@@ -57,12 +60,12 @@ func NewConsole(width, height int, font *Font, title string) (*Console, error) {
 }
 
 // SetPreRenderHook will apply a hook that gets triggered before the console started rendering
-func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image) error) {
+func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) {
 	c.preRenderHook = hook
 }
 
 // SetPostRenderHook will apply a hook that gets triggered after the console is finished rendering
-func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image) error) {
+func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) {
 	c.preRenderHook = hook
 }
 
@@ -281,8 +284,14 @@ func (c *Console) update(screen *ebiten.Image) error {
 		return nil
 	}
 
+	defer func() {
+		c.lastFrame = time.Now().UnixNano()
+	}()
+
+	timeElapsed := float64((time.Now().UnixNano()-c.lastFrame)/(int64(time.Millisecond)/int64(time.Nanosecond))) / 1000.0
+
 	if c.preRenderHook != nil {
-		if err := c.preRenderHook(screen); err != nil {
+		if err := c.preRenderHook(screen, timeElapsed); err != nil {
 			return err
 		}
 	}
@@ -306,7 +315,7 @@ func (c *Console) update(screen *ebiten.Image) error {
 	c.mtx.RUnlock()
 
 	if c.postRenderHook != nil {
-		if err := c.postRenderHook(screen); err != nil {
+		if err := c.postRenderHook(screen, timeElapsed); err != nil {
 			return err
 		}
 	}
