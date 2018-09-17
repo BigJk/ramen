@@ -10,7 +10,9 @@ const (
 	BackgroundColor = ColorType(1)
 )
 
-var emptyCell = Cell{}
+var emptyCell = Cell{
+	Foreground: NewColor(255, 255, 255),
+}
 
 // Cell represents a cell in the console
 type Cell struct {
