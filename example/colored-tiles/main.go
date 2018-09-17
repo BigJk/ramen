@@ -32,7 +32,7 @@ func main() {
 	/*
 		set a pre-render hook
 	*/
-	con.SetPreRenderHook(func(screen *ebiten.Image) error {
+	con.SetPreRenderHook(func(screen *ebiten.Image, deltaTime float64) error {
 		screen.Fill(color.NRGBA{69, 40, 60, 255})
 
 		/*

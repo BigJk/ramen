@@ -75,10 +75,6 @@ func main() {
 		}
 	}()
 
-	con.SetPreRenderHook(func(screen *ebiten.Image) error {
-		return nil
-	})
-
 	con.Start(1)
 }
 
