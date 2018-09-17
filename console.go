@@ -43,8 +43,11 @@ type Console struct {
 // NewConsole creates a new console
 func NewConsole(width, height int, font *Font, title string) (*Console, error) {
 	buf := make([][]Cell, width)
-	for i := range buf {
-		buf[i] = make([]Cell, height)
+	for x := range buf {
+		buf[x] = make([]Cell, height)
+		for y := range buf[x] {
+			buf[x][y] = emptyCell
+		}
 	}
 
 	lines := make([]*ebiten.Image, width)
@@ -149,7 +152,6 @@ func (c *Console) Start(scale float64) error {
 	if c.isSubConsole {
 		return fmt.Errorf("only the main console can be started")
 	}
-	c.ClearAll()
 	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
 }
 
