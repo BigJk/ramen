@@ -215,13 +215,31 @@ func (c *Console) PrintFrameEx(x, y, width, height int, frame Frame, title strin
 	c.Print(x+5, y, "["+title+"]", frame.Foreground)
 }
 
-// Clear clears the console
-func (c *Console) Clear() {
+// Clear clears the whole console
+func (c *Console) ClearAll() {
 	c.mtx.Lock()
 	for x := range c.buffer {
 		for y := range c.buffer[x] {
 			c.buffer[x][y] = emptyCell
 			c.updates = append(c.updates, x)
+		}
+	}
+	c.mtx.Unlock()
+}
+
+// Clear clears part of the console
+func (c *Console) Clear(x, y, width, height int) {
+	c.mtx.Lock()
+	for px := 0; px < width; px++ {
+		mustUpdate := false
+		for py := 0; py < height; py++ {
+			if c.buffer[px+x][py+y] != emptyCell {
+				c.buffer[px+x][py+y] = emptyCell
+				mustUpdate = true
+			}
+		}
+		if mustUpdate {
+			c.updates = append(c.updates, px+x)
 		}
 	}
 	c.mtx.Unlock()
