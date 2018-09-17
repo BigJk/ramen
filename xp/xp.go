@@ -11,6 +11,7 @@ import (
 	"github.com/BigJk/ramen"
 )
 
+// XP represents a REXPaint file
 type XP struct {
 	Version int
 	Width   int
@@ -18,16 +19,19 @@ type XP struct {
 	Layers  []Layer
 }
 
+// Cell represents a cell in the REXPaint file
 type Cell struct {
 	Char       int
 	Foreground ramen.Color
 	Background ramen.Color
 }
 
+// Layer represents a layer of cells in the REXPaint file
 type Layer struct {
 	Cells [][]Cell
 }
 
+// Read parses a xp file from the reader
 func Read(reader io.Reader) (*XP, error) {
 	deflated, err := gzip.NewReader(reader)
 	if err != nil {
