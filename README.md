@@ -62,12 +62,5 @@ func main() {
 
 ## Screenshots
 
-
-
-<p align="center">
-  <img src="./_resources/screen_colored_tiles.png" width="538">
-</p>
-
-<p align="center">
-  <img src="./_resources/screen_text.png" width="200">
-</p>
+<img src="./_resources/screen_colored_tiles.png" width="538" align="left">
+<img src="./_resources/screen_text.png" width="200" align="left">
