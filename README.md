@@ -10,6 +10,16 @@
 
 <br>
 
+## Features
+
+- PNG Fonts with more than 256 chars possible
+- Fonts can contain chars and colored tiles
+- Create sub-consoles to organize rendering
+- Everything **ebiten** can do
+  - Input: Mouse, Keyboard, Gamepads, Touches
+  - Audio: MP3, Ogg/Vorbis, WAV, PCM
+  - ...
+
 ## Get Started
 
 ```
