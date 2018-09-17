@@ -215,16 +215,9 @@ func (c *Console) PrintFrameEx(x, y, width, height int, frame Frame, title strin
 	c.Print(x+5, y, "["+title+"]", frame.Foreground)
 }
 
-// Clear clears the whole console
+// ClearAll clears the whole console
 func (c *Console) ClearAll() {
-	c.mtx.Lock()
-	for x := range c.buffer {
-		for y := range c.buffer[x] {
-			c.buffer[x][y] = emptyCell
-			c.updates = append(c.updates, x)
-		}
-	}
-	c.mtx.Unlock()
+	c.Clear(0, 0, c.Width, c.Height)
 }
 
 // Clear clears part of the console
