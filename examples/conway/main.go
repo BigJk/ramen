@@ -4,7 +4,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/BigJk/ramen"
+	"github.com/BigJk/ramen/console"
+	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/font"
+	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten"
 )
 
@@ -32,12 +35,12 @@ func main() {
 		}
 	}
 
-	font, err := ramen.NewFont("../../fonts/ti84-6x8.png", 6, 8)
+	font, err := font.New("../../fonts/ti84-6x8.png", 6, 8)
 	if err != nil {
 		panic(err)
 	}
 
-	con, err := ramen.NewConsole(Width, Height, font, "ramen - conway's game of life")
+	con, err := console.New(Width, Height, font, "ramen - conway's game of life")
 	if err != nil {
 		panic(err)
 	}
@@ -55,9 +58,9 @@ func main() {
 			for x := range board {
 				for y := range board[x] {
 					if board[x][y] {
-						con.PutColor(x, y, ramen.NewColor(255, 255, 255), ramen.ModifyBackgroundColor)
+						con.Transform(x, y, t.Background(consolecolor.New(255, 255, 255)))
 					} else {
-						con.PutColor(x, y, ramen.NewColor(0, 0, 0), ramen.ModifyBackgroundColor)
+						con.Transform(x, y, t.Background(consolecolor.New(0, 0, 0)))
 					}
 				}
 			}

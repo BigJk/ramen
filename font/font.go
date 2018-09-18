@@ -1,4 +1,4 @@
-package ramen
+package font
 
 import (
 	"image"
@@ -18,8 +18,8 @@ type Font struct {
 	Tiles      map[int]bool
 }
 
-// NewFont creates a new font
-func NewFont(filePath string, tileWidth, tileHeight int) (*Font, error) {
+// New creates a new font
+func New(filePath string, tileWidth, tileHeight int) (*Font, error) {
 	file, err := ebitenutil.OpenFile(filePath)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,9 @@ func (f *Font) ToOptions(char int) *ebiten.DrawImageOptions {
 	return op
 }
 
-// SetTiles changes if a char is a colored tile or not
+// SetTiles changes if a char is a colored tile or not.
+// start specifies the char where SetTiles should start setting the value
+// and count is the amount of chars after start that should also be set.
 func (f *Font) SetTiles(start, count int, value bool) {
 	for i := start; i <= start+count; i++ {
 		f.Tiles[i] = value

@@ -1,25 +1,33 @@
-package ramen
+package console
 
 import (
 	"fmt"
 	"sync"
 
-	"image/color"
-
 	"time"
 
 	"sort"
 
+	"image/color"
+
+	"github.com/BigJk/ramen"
+	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/font"
+	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
+
+var emptyCell = ramen.Cell{
+	Foreground: consolecolor.New(255, 255, 255),
+}
 
 // Console represents a emulated console view
 type Console struct {
 	Title       string
 	Width       int
 	Height      int
-	Font        *Font
+	Font        *font.Font
 	ShowFPS     bool
 	SubConsoles []*Console
 
@@ -31,7 +39,7 @@ type Console struct {
 
 	mtx       *sync.RWMutex
 	updates   []int
-	buffer    [][]Cell
+	buffer    [][]ramen.Cell
 	lastFrame int64
 
 	lines []*ebiten.Image
@@ -40,11 +48,11 @@ type Console struct {
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
 
-// NewConsole creates a new console
-func NewConsole(width, height int, font *Font, title string) (*Console, error) {
-	buf := make([][]Cell, width)
+// New creates a new console
+func New(width, height int, font *font.Font, title string) (*Console, error) {
+	buf := make([][]ramen.Cell, width)
 	for x := range buf {
-		buf[x] = make([]Cell, height)
+		buf[x] = make([]ramen.Cell, height)
 		for y := range buf[x] {
 			buf[x][y] = emptyCell
 		}
@@ -109,7 +117,7 @@ func (c *Console) CreateSubConsole(x, y, width, height int) (*Console, error) {
 
 	c.mtx.Lock()
 
-	sub, err := NewConsole(width, height, c.Font, "")
+	sub, err := New(width, height, c.Font, "")
 	if err != nil {
 		return nil, err
 	}
@@ -155,176 +163,90 @@ func (c *Console) Start(scale float64) error {
 	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
 }
 
-// PutCharRune will set the char value of the cell at the given position to the value of the rune
-func (c *Console) PutCharRune(x, y int, char rune) error {
-	return c.PutCharInt(x, y, int(char))
+// ClearAll clears the whole console. If no transformer are specified the console will be cleared
+// to the default cell look.
+func (c *Console) ClearAll(transformer ...t.Transformer) {
+	c.Clear(0, 0, c.Width, c.Height, transformer...)
 }
 
-// PutCharByte will set the char value of the cell at the given position to the value of the byte
-func (c *Console) PutCharByte(x, y int, char byte) error {
-	return c.PutCharInt(x, y, int(char))
-}
-
-// PutCharInt will set the char value of the cell at the given position to the value of the int
-func (c *Console) PutCharInt(x, y int, char int) error {
-	if err := c.checkOutOfBounds(x, y); err != nil {
-		return err
-	}
-
+// Clear clears part of the console. If no transformer are specified the console will be cleared
+// to the default cell look.
+func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) error {
 	c.mtx.Lock()
-	if c.buffer[x][y].Char == char {
-		c.mtx.Unlock()
-		return nil
-	}
-	c.buffer[x][y].Char = char
-	c.queueUpdate(x)
-	c.mtx.Unlock()
 
-	return nil
-}
-
-// PutColor will either change the foreground and/or background color of the tile at the given position.
-// You can combine changing both colors with ramen.ModifyForegroundColor | ramen.ModifyBackgroundColor
-func (c *Console) PutColor(x, y int, color Color, colorModifier ColorModifier) error {
-	if err := c.checkOutOfBounds(x, y); err != nil {
-		return err
-	}
-	needUpdate := false
-
-	c.mtx.Lock()
-	if colorModifier.HasFlag(ModifyForegroundColor) {
-		if c.buffer[x][y].Foreground != color {
-			c.buffer[x][y].Foreground = color
-			needUpdate = true
-		}
-	}
-
-	if colorModifier.HasFlag(ModifyBackgroundColor) {
-		if c.buffer[x][y].Background != color {
-			c.buffer[x][y].Background = color
-			needUpdate = true
-		}
-	}
-
-	if needUpdate {
-		c.queueUpdate(x)
-	}
-	c.mtx.Unlock()
-
-	return nil
-}
-
-// GetCell returns the cell data of the given position
-func (c *Console) GetCell(x, y int) (Cell, error) {
-	if err := c.checkOutOfBounds(x, y); err != nil {
-		return Cell{}, err
-	}
-
-	c.mtx.RLock()
-	defer c.mtx.RUnlock()
-	return c.buffer[x][y], nil
-}
-
-// Print prints a string on the console with a given foreground color
-func (c *Console) Print(x, y int, text string, foreground Color) {
-	for i := range text {
-		c.PutCharByte(x+i, y, text[i])
-		c.PutColor(x+i, y, foreground, ModifyForegroundColor)
-	}
-}
-
-// PrintEx prints a string on the console with a given foreground and background color
-func (c *Console) PrintEx(x, y int, text string, foreground Color, background Color) {
-	for i := range text {
-		c.PutColor(x+i, y, background, ModifyBackgroundColor)
-	}
-	c.Print(x, y, text, foreground)
-}
-
-// PrintFmt prints a formatted string on the console with a given foreground color
-func (c *Console) PrintFmt(x, y int, format string, foreground Color, a ...interface{}) {
-	text := fmt.Sprintf(format, a...)
-	for i := range text {
-		c.PutCharByte(x+i, y, text[i])
-		c.PutColor(x+i, y, foreground, ModifyForegroundColor)
-	}
-}
-
-// PrintFmtEx prints a formatted string on the console with a given foreground and background color
-func (c *Console) PrintFmtEx(x, y int, format string, foreground Color, background Color, a ...interface{}) {
-	text := fmt.Sprintf(format, a...)
-	for i := range text {
-		c.PutColor(x+i, y, background, ModifyBackgroundColor)
-	}
-	c.Print(x, y, text, foreground)
-}
-
-// PrintFrame prints a frame on the console
-func (c *Console) PrintFrame(x, y, width, height int, frame Frame) {
-	c.PutCharInt(x, y, frame.TopLeft)
-	c.PutColor(x, y, frame.Foreground, ModifyForegroundColor)
-	c.PutColor(x, y, frame.Background, ModifyBackgroundColor)
-
-	c.PutCharInt(x+width-1, y, frame.TopRight)
-	c.PutColor(x+width-1, y, frame.Foreground, ModifyForegroundColor)
-	c.PutColor(x+width-1, y, frame.Background, ModifyBackgroundColor)
-
-	c.PutCharInt(x, y+height-1, frame.BottomLeft)
-	c.PutColor(x, y+height-1, frame.Foreground, ModifyForegroundColor)
-	c.PutColor(x, y+height-1, frame.Background, ModifyBackgroundColor)
-
-	c.PutCharInt(x+width-1, y+height-1, frame.BottomRight)
-	c.PutColor(x+width-1, y+height-1, frame.Foreground, ModifyForegroundColor)
-	c.PutColor(x+width-1, y+height-1, frame.Background, ModifyBackgroundColor)
-
-	for i := 1; i < width-1; i++ {
-		c.PutCharInt(x+i, y, frame.Horizontal)
-		c.PutColor(x+i, y, frame.Foreground, ModifyForegroundColor)
-		c.PutColor(x+i, y, frame.Background, ModifyBackgroundColor)
-
-		c.PutCharInt(x+i, y+height-1, frame.Horizontal)
-		c.PutColor(x+i, y+height-1, frame.Foreground, ModifyForegroundColor)
-		c.PutColor(x+i, y+height-1, frame.Background, ModifyBackgroundColor)
-	}
-
-	for i := 1; i < height-1; i++ {
-		c.PutCharInt(x, y+i, frame.Vertical)
-		c.PutColor(x, y+i, frame.Foreground, ModifyForegroundColor)
-		c.PutColor(x, y+i, frame.Background, ModifyBackgroundColor)
-
-		c.PutCharInt(x+width-1, y+i, frame.Vertical)
-		c.PutColor(x+width-1, y+i, frame.Foreground, ModifyForegroundColor)
-		c.PutColor(x+width-1, y+i, frame.Background, ModifyBackgroundColor)
-	}
-}
-
-// PrintFrameEx prints a frame with a title on the console
-func (c *Console) PrintFrameEx(x, y, width, height int, frame Frame, title string) {
-	c.PrintFrame(x, y, width, height, frame)
-	c.Print(x+5, y, "["+title+"]", frame.Foreground)
-}
-
-// ClearAll clears the whole console
-func (c *Console) ClearAll() {
-	c.Clear(0, 0, c.Width, c.Height)
-}
-
-// Clear clears part of the console
-func (c *Console) Clear(x, y, width, height int) {
-	c.mtx.Lock()
 	for px := 0; px < width; px++ {
 		mustUpdate := false
 		for py := 0; py < height; py++ {
-			if c.buffer[px+x][py+y] != emptyCell {
-				c.buffer[px+x][py+y] = emptyCell
-				mustUpdate = true
+			if len(transformer) == 0 {
+				if c.buffer[px+x][py+y] != emptyCell {
+					c.buffer[px+x][py+y] = emptyCell
+					mustUpdate = true
+				} else {
+					for i := range transformer {
+						changed, err := transformer[i].Transform(&c.buffer[x][y])
+						if err != nil {
+							return err
+						}
+						if changed {
+							mustUpdate = true
+						}
+					}
+				}
 			}
 		}
+
 		if mustUpdate {
 			c.updates = append(c.updates, px+x)
 		}
 	}
+
 	c.mtx.Unlock()
+
+	return nil
+}
+
+// Transform transforms a cell. This can be used to change the character, foreground and
+// background of a cell or apply custom transformers onto a cell.
+func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
+	if len(transformer) == 0 {
+		return fmt.Errorf("no transformer given")
+	}
+
+	c.mtx.Lock()
+
+	mustUpdate := false
+	for i := range transformer {
+		changed, err := transformer[i].Transform(&c.buffer[x][y])
+		if err != nil {
+			return err
+		}
+		if changed {
+			mustUpdate = true
+		}
+	}
+
+	if mustUpdate {
+		c.queueUpdate(x)
+	}
+
+	c.mtx.Unlock()
+
+	return nil
+}
+
+// Print prints a text onto the console. To give the text a different foreground or
+// background color use transformer.
+func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
+	if y >= c.Height {
+		return
+	}
+
+	for i := range text {
+		if x+i >= c.Width {
+			return
+		}
+		c.Transform(x+i, y, append(transformer, t.CharByte(text[i]))...)
+	}
 }
 
 func (c *Console) sortSubConsoles() {

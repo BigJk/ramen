@@ -1,4 +1,4 @@
-package ramen
+package consolecolor
 
 // Color represents a ARGB color in the console
 type Color struct {
@@ -8,13 +8,13 @@ type Color struct {
 	A byte
 }
 
-// NewColor creates a new color from R,G,B values
-func NewColor(r, g, b byte) Color {
+// New creates a new color from R,G,B values
+func New(r, g, b byte) Color {
 	return Color{r, g, b, 255}
 }
 
-// NewColorTransparent creates a new color from R,G,B,A values
-func NewColorTransparent(r, g, b, a byte) Color {
+// NewTransparent creates a new color from R,G,B,A values
+func NewTransparent(r, g, b, a byte) Color {
 	return Color{r, g, b, a}
 }
 

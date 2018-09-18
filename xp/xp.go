@@ -8,7 +8,7 @@ import (
 
 	"fmt"
 
-	"github.com/BigJk/ramen"
+	"github.com/BigJk/ramen/consolecolor"
 )
 
 // XP represents a REXPaint file
@@ -22,8 +22,8 @@ type XP struct {
 // Cell represents a cell in the REXPaint file
 type Cell struct {
 	Char       int
-	Foreground ramen.Color
-	Background ramen.Color
+	Foreground consolecolor.Color
+	Background consolecolor.Color
 }
 
 // Layer represents a layer of cells in the REXPaint file
@@ -105,7 +105,7 @@ func Read(reader io.Reader) (*XP, error) {
 	return &xp, nil
 }
 
-func readRGB(reader io.Reader, target *ramen.Color) error {
+func readRGB(reader io.Reader, target *consolecolor.Color) error {
 	rgb := make([]byte, 3)
 	num, err := io.ReadAtLeast(reader, rgb, 3)
 

@@ -1,13 +1,11 @@
 package ramen
 
-var emptyCell = Cell{
-	Foreground: NewColor(255, 255, 255),
-}
+import "github.com/BigJk/ramen/consolecolor"
 
 // Cell represents a cell in the console
 type Cell struct {
-	Foreground Color
-	Background Color
+	Foreground consolecolor.Color
+	Background consolecolor.Color
 
 	Char int
 }
