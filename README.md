@@ -32,42 +32,43 @@ go get github.com/BigJk/ramen
 package main
 
 import (
-	"time"
-
-	"github.com/BigJk/ramen"
+	"github.com/BigJk/ramen/console"
+	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/font"
+	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten"
 )
 
 func main() {
-  // load a font you like
-  font, err := ramen.NewFont("./your-8x8-font.png", 8, 8)
-  if err != nil {
-    panic(err)
-  }
+	// load a font you like
+	font, err := font.New("../../fonts/terminus-11x11.png", 11, 11)
+	if err != nil {
+		panic(err)
+	}
 
-  // create a 50x30 cells console with the title 'ramen example'
-  con, err := ramen.NewConsole(50, 30, font, "ramen example")
-  if err != nil {
-    panic(err)
-  }
+	// create a 50x30 cells console with the title 'ramen example'
+	con, err := console.New(50, 30, font, "ramen example")
+	if err != nil {
+		panic(err)
+	}
 
-  // set a pre-render hook. This function will be executed
-  // each frame before the drawing happened. You can also
-  // call the console functions from other goroutines.
-  // The timeDelta parameter is the elapsed time in seconds
-  // since the last frame.
-  con.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
-    con.ClearAll()
-    con.PrintFrameEx(0, 0, con.Width, con.Height, ramen.DefaultFrame, "Hello! Frame here!")
-    con.PrintEx(2, con.Height-7, "bleep", ramen.NewColor(0, 0, 0), ramen.NewColor(255, 255, 255))
-    con.Print(2, con.Height-5, "all kinds of stuff...", ramen.NewColor(0, 255, 0))
-    con.PrintFmt(2, con.Height-3, "Hello! FPS: %0.2f", ramen.NewColor(255, 0, 0), ebiten.CurrentFPS())
-    return nil
-  })
+	// set a pre-render hook. This function will be executed
+	// each frame before the drawing happened. You can also
+	// call the console functions from other goroutines.
+	// The timeDelta parameter is the elapsed time in seconds
+	// since the last frame.
+	con.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
+		con.ClearAll(t.Background(consolecolor.New(50, 50, 50)))
 
-  // start the console with a scaling of 1
-  con.Start(1)
+		con.Print(2, 2, "Hello!", t.Foreground(consolecolor.New(0, 255, 0)), t.Background(consolecolor.New(255, 0, 0)))
+
+		return nil
+	})
+
+	// start the console with a scaling of 1
+	con.Start(1)
 }
+
 ```
 
 ## Screenshots
