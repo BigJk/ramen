@@ -51,8 +51,8 @@ func main() {
 		for x := range xp.Layers[l].Cells {
 			for y := range xp.Layers[l].Cells[x] {
 				layers[l].PutCharInt(x, y, xp.Layers[l].Cells[x][y].Char)
-				layers[l].PutColor(x, y, xp.Layers[l].Cells[x][y].Foreground, ramen.ForegroundColor)
-				layers[l].PutColor(x, y, xp.Layers[l].Cells[x][y].Background, ramen.BackgroundColor)
+				layers[l].PutColor(x, y, xp.Layers[l].Cells[x][y].Foreground, ramen.ModifyForegroundColor)
+				layers[l].PutColor(x, y, xp.Layers[l].Cells[x][y].Background, ramen.ModifyBackgroundColor)
 			}
 		}
 	}

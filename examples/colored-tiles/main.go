@@ -61,7 +61,7 @@ func main() {
 		for y := 1; y < con.Height-1; y++ {
 			for x := 1; x < con.Width-1; x++ {
 				con.PutCharInt(x, y, i)
-				con.PutColor(x, y, ramen.NewColor(255, 0, 0), ramen.ForegroundColor)
+				con.PutColor(x, y, ramen.NewColor(255, 0, 0), ramen.ModifyForegroundColor)
 				i++
 			}
 		}

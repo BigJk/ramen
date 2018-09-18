@@ -55,9 +55,9 @@ func main() {
 			for x := range board {
 				for y := range board[x] {
 					if board[x][y] {
-						con.PutColor(x, y, ramen.NewColor(255, 255, 255), ramen.BackgroundColor)
+						con.PutColor(x, y, ramen.NewColor(255, 255, 255), ramen.ModifyBackgroundColor)
 					} else {
-						con.PutColor(x, y, ramen.NewColor(0, 0, 0), ramen.BackgroundColor)
+						con.PutColor(x, y, ramen.NewColor(0, 0, 0), ramen.ModifyBackgroundColor)
 					}
 				}
 			}
