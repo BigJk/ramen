@@ -210,6 +210,8 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 	if len(transformer) == 0 {
 		return fmt.Errorf("no transformer given")
+	} else if err := c.checkOutOfBounds(x, y); err != nil {
+		return err
 	}
 
 	c.mtx.Lock()
@@ -241,11 +243,20 @@ func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 		return
 	}
 
+	linePos := 0
 	for i := range text {
 		if x+i >= c.Width {
-			return
+			continue
 		}
-		c.Transform(x+i, y, append(transformer, t.CharByte(text[i]))...)
+
+		if text[i] == '\n' {
+			y++
+			linePos = 0
+			continue
+		}
+
+		c.Transform(linePos+x, y, append(transformer, t.CharByte(text[i]))...)
+		linePos++
 	}
 }
 
