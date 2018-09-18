@@ -74,5 +74,5 @@ func main() {
 
 ## Screenshots
 
-<img src="./_resources/screen_colored_tiles.png" width="538" align="left">
-<img src="./_resources/screen_text.png" width="200" align="left">
+<img src="./.github/screen_colored_tiles.png" width="538" align="left">
+<img src="./.github/screen_text.png" width="200" align="left">
