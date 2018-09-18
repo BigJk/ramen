@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	Width  = 50
-	Height = 50
+	width  = 50
+	height = 50
 )
 
 var board [][]bool
@@ -27,7 +27,7 @@ var board [][]bool
 */
 
 func main() {
-	board = createBoard(Width, Height)
+	board = createBoard(width, height)
 
 	for x := range board {
 		for y := range board[x] {
@@ -40,7 +40,7 @@ func main() {
 		panic(err)
 	}
 
-	con, err := console.New(Width, Height, font, "ramen - conway's game of life")
+	con, err := console.New(width, height, font, "ramen - conway's game of life")
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +52,7 @@ func main() {
 			}
 
 			if ebiten.IsKeyPressed(ebiten.KeyK) {
-				board = createBoard(Width, Height)
+				board = createBoard(width, height)
 			}
 
 			for x := range board {
@@ -90,13 +90,13 @@ func createBoard(w, h int) [][]bool {
 }
 
 func getCell(x, y int) bool {
-	wx := x % Width
-	wy := y % Height
+	wx := x % width
+	wy := y % height
 	if wx < 0 {
-		wx += Width
+		wx += width
 	}
 	if wy < 0 {
-		wy += Height
+		wy += height
 	}
 	return board[wx][wy]
 }
@@ -140,7 +140,7 @@ func livingNeighbors(x, y int) int {
 }
 
 func step() {
-	nextBoard := createBoard(Width, Height)
+	nextBoard := createBoard(width, height)
 	for x := range board {
 		for y := range board[x] {
 			c := livingNeighbors(x, y)
