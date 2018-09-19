@@ -59,7 +59,7 @@ func main() {
 	// place for your game logic.
 	//
 	// The timeDelta parameter is the elapsed time in seconds
-	// since the last frame.
+	// since the last tick.
 	con.SetTickHook(func(timeElapsed float64) error {
 		// your game logic
 		return nil
