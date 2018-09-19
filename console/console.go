@@ -2,9 +2,8 @@ package console
 
 import (
 	"fmt"
+	"math"
 	"sync"
-
-	"time"
 
 	"sort"
 
@@ -37,13 +36,13 @@ type Console struct {
 	priority     int
 	isSubConsole bool
 
-	mtx       *sync.RWMutex
-	updates   []int
-	buffer    [][]ramen.Cell
-	lastFrame int64
+	mtx     *sync.RWMutex
+	updates []int
+	buffer  [][]ramen.Cell
 
 	lines []*ebiten.Image
 
+	tickHook       func(timeElapsed float64) error
 	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
@@ -80,7 +79,18 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 	}, nil
 }
 
-// SetPreRenderHook will apply a hook that gets triggered before the console started rendering
+// SetTickHook will apply a hook that gets triggered every tick, even if drawing is skipped in this tick.
+// This is a good place for game logic as it runs disconnected from the fps.
+func (c *Console) SetTickHook(hook func(timeElapsed float64) error) error {
+	if c.isSubConsole {
+		return fmt.Errorf("can't hook into sub-console")
+	}
+	c.tickHook = hook
+	return nil
+}
+
+// SetPreRenderHook will apply a hook that gets triggered before the console started rendering.
+// This is a good place to change the console or to draw extra content under the console.
 func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) error {
 	if c.isSubConsole {
 		return fmt.Errorf("can't hook into sub-console")
@@ -89,7 +99,8 @@ func (c *Console) SetPreRenderHook(hook func(screen *ebiten.Image, timeElapsed f
 	return nil
 }
 
-// SetPostRenderHook will apply a hook that gets triggered after the console is finished rendering
+// SetPostRenderHook will apply a hook that gets triggered after the console is finished rendering.
+// This is a good place if you want to draw some extra content over the console.
 func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image, timeElapsed float64) error) error {
 	if c.isSubConsole {
 		return fmt.Errorf("can't hook into sub-console")
@@ -329,16 +340,34 @@ func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
 	}
 }
 
+func (c *Console) elapsedTPS() float64 {
+	e := 1.0 / math.Min(float64(ebiten.MaxTPS()), ebiten.CurrentTPS())
+	if e > math.MaxFloat64 {
+		e = 0
+	}
+	return e
+}
+
+func (c *Console) elapsedFPS() float64 {
+	e := 1.0 / math.Min(float64(ebiten.FPS), ebiten.CurrentFPS())
+	if e > math.MaxFloat64 {
+		e = 0
+	}
+	return e
+}
+
 func (c *Console) update(screen *ebiten.Image) error {
+	if c.tickHook != nil {
+		if err := c.tickHook(c.elapsedTPS()); err != nil {
+			return err
+		}
+	}
+
 	if ebiten.IsDrawingSkipped() {
 		return nil
 	}
 
-	defer func() {
-		c.lastFrame = time.Now().UnixNano()
-	}()
-
-	timeElapsed := float64((time.Now().UnixNano()-c.lastFrame)/(int64(time.Millisecond)/int64(time.Nanosecond))) / 1000.0
+	timeElapsed := c.elapsedFPS()
 
 	if c.preRenderHook != nil {
 		if err := c.preRenderHook(screen, timeElapsed); err != nil {
