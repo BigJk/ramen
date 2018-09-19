@@ -53,16 +53,29 @@ func main() {
 		panic(err)
 	}
 
+	// set a tick hook. This function will be executed
+	// each tick (60 ticks per second by default) even
+	// when the fps is lower than 60fps. This is a good
+	// place for your game logic.
+	//
+	// The timeDelta parameter is the elapsed time in seconds
+	// since the last frame.
+	con.SetTickHook(func(timeElapsed float64) error {
+		// your game logic
+		return nil
+	})
+
 	// set a pre-render hook. This function will be executed
-	// each frame before the drawing happened. You can also
-	// call the console functions from other goroutines.
+	// each frame before the drawing happens. This is a good
+	// place to draw onto the console, because it only executes
+	// if a draw is really about to happen.
+	//
 	// The timeDelta parameter is the elapsed time in seconds
 	// since the last frame.
 	con.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
 		con.ClearAll(t.Background(consolecolor.New(50, 50, 50)))
-
-		con.Print(2, 2, "Hello!", t.Foreground(consolecolor.New(0, 255, 0)), t.Background(consolecolor.New(255, 0, 0)))
-
+		con.Print(2, 2, "Hello!\nTEST\n Line 3", t.Foreground(consolecolor.New(0, 255, 0)), t.Background(consolecolor.New(255, 0, 0)))
+		con.Print(2, 7, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nElapsed: %0.4f", ebiten.CurrentFPS(), ebiten.CurrentFPS(), timeDelta))
 		return nil
 	})
 
