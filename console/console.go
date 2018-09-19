@@ -105,7 +105,7 @@ func (c *Console) SetPostRenderHook(hook func(screen *ebiten.Image, timeElapsed 
 	if c.isSubConsole {
 		return fmt.Errorf("can't hook into sub-console")
 	}
-	c.preRenderHook = hook
+	c.postRenderHook = hook
 	return nil
 }
 
@@ -188,6 +188,10 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 	for px := 0; px < width; px++ {
 		mustUpdate := false
 		for py := 0; py < height; py++ {
+			if err := c.checkOutOfBounds(px+x, py+y); err != nil {
+				return err
+			}
+
 			if len(transformer) == 0 {
 				if c.buffer[px+x][py+y] != emptyCell {
 					c.buffer[px+x][py+y] = emptyCell
@@ -199,6 +203,7 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 					if err != nil {
 						return err
 					}
+
 					if changed {
 						mustUpdate = true
 					}
@@ -274,7 +279,7 @@ func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 func (c *Console) sortSubConsoles() {
 	c.mtx.Lock()
 	sort.Slice(c.SubConsoles, func(i, j int) bool {
-		return c.SubConsoles[i].priority > c.SubConsoles[j].priority
+		return c.SubConsoles[i].priority < c.SubConsoles[j].priority
 	})
 	c.mtx.Unlock()
 }
