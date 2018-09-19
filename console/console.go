@@ -297,11 +297,22 @@ func (c *Console) checkOutOfBounds(x, y int) error {
 
 func (c *Console) updateLine(x int) {
 	c.lines[x].Fill(color.NRGBA{0, 0, 0, 0})
+
+	// Draw background and chars separately in order to group
+	// draw calls from the same sources. This should increase
+	// performance.
+	//
+	// (https://github.com/hajimehoshi/ebiten/wiki/Performance-Tips)
+
 	for y := range c.buffer[x] {
-		if c.buffer[x][y].Background.A > 0 {
-			ebitenutil.DrawRect(c.lines[x], 0, float64(y*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
+		if c.buffer[x][y].Background.A == 0 {
+			continue
 		}
 
+		ebitenutil.DrawRect(c.lines[x], 0, float64(y*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
+	}
+
+	for y := range c.buffer[x] {
 		if c.buffer[x][y].Char == 0 {
 			continue
 		}
