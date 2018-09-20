@@ -273,7 +273,7 @@ func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
 				continue
 			}
 
-			ebitenutil.DrawRect(screen, float64((offsetX+x)*c.Font.TileWidth), float64((offsetY+y)*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
+			ebitenutil.DrawRect(screen, float64((offsetX+c.x+x)*c.Font.TileWidth), float64((offsetY+c.y+y)*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
 		}
 	}
 
@@ -283,13 +283,13 @@ func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
 			if !c.Font.IsTile(c.buffer[x][y].Char) {
 				op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
 			}
-			op.GeoM.Translate(float64((offsetX+x)*c.Font.TileWidth), float64((offsetY+y)*c.Font.TileHeight))
+			op.GeoM.Translate(float64((offsetX+c.x+x)*c.Font.TileWidth), float64((offsetY+c.y+y)*c.Font.TileHeight))
 			screen.DrawImage(c.Font.Image, op)
 		}
 	}
 
 	for i := range c.SubConsoles {
-		c.SubConsoles[i].draw(screen, offsetX+c.x, offsetY+c.x)
+		c.SubConsoles[i].draw(screen, offsetX+c.x, offsetY+c.y)
 	}
 }
 
