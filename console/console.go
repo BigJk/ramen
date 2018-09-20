@@ -40,6 +40,8 @@ type Console struct {
 	mouseX int
 	mouseY int
 
+	components []Component
+
 	tickHook       func(timeElapsed float64) error
 	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
@@ -73,6 +75,14 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 		mtx:         new(sync.RWMutex),
 		buffer:      buf,
 	}, nil
+}
+
+// Start will open the console window with the given scale
+func (c *Console) Start(scale float64) error {
+	if c.isSubConsole {
+		return fmt.Errorf("only the main console can be started")
+	}
+	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
 }
 
 // SetTickHook will apply a hook that gets triggered every tick, even if drawing is skipped in this tick.
@@ -114,6 +124,13 @@ func (c *Console) SetPriority(priority int) error {
 	c.priority = priority
 	c.parent.sortSubConsoles()
 	return nil
+}
+
+// AddComponent adds a component that should be updated and rendered to the console
+func (c *Console) AddComponent(component Component) {
+	c.mtx.Lock()
+	c.components = append(c.components, component)
+	c.mtx.Unlock()
 }
 
 // CreateSubConsole creates a new sub-console
@@ -160,14 +177,6 @@ func (c *Console) RemoveSubConsole(con *Console) error {
 	}
 	c.mtx.Unlock()
 	return fmt.Errorf("sub-console not found")
-}
-
-// Start will open the console window with the given scale
-func (c *Console) Start(scale float64) error {
-	if c.isSubConsole {
-		return fmt.Errorf("only the main console can be started")
-	}
-	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
 }
 
 // ClearAll clears the whole console. If no transformer are specified the console will be cleared
@@ -275,7 +284,14 @@ func (c *Console) checkOutOfBounds(x, y int) error {
 	return nil
 }
 
-func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
+func (c *Console) draw(screen *ebiten.Image, timeElapsed float64, offsetX, offsetY int) {
+	for i := range c.components {
+		if c.components[i].ShouldDraw() {
+			c.components[i].Draw(c, timeElapsed)
+		}
+	}
+
+	c.mtx.RLock()
 	for x := range c.buffer {
 		for y := range c.buffer[x] {
 			if c.buffer[x][y].Background.A == 0 {
@@ -296,9 +312,10 @@ func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
 			screen.DrawImage(c.Font.Image, op)
 		}
 	}
+	c.mtx.RUnlock()
 
 	for i := range c.SubConsoles {
-		c.SubConsoles[i].draw(screen, offsetX+c.x, offsetY+c.y)
+		c.SubConsoles[i].draw(screen, timeElapsed, offsetX+c.x, offsetY+c.y)
 	}
 }
 
@@ -313,6 +330,19 @@ func (c *Console) propagateMousePosition(x, y int) {
 		for i := range c.SubConsoles {
 			c.SubConsoles[i].propagateMousePosition(c.mouseX, c.mouseY)
 		}
+	}
+}
+
+func (c *Console) propagateComponentUpdates(timeElapsed float64) {
+	for i := 0; i < len(c.components); i++ {
+		if c.components[i].ShouldClose() || !c.components[i].Update(timeElapsed) {
+			c.components = append(c.components[:i], c.components[i+1:]...)
+			i--
+		}
+	}
+
+	for i := range c.SubConsoles {
+		c.SubConsoles[i].propagateComponentUpdates(timeElapsed)
 	}
 }
 
@@ -333,8 +363,11 @@ func (c *Console) elapsedFPS() float64 {
 }
 
 func (c *Console) update(screen *ebiten.Image) error {
+	c.mtx.RLock()
 	mx, my := ebiten.CursorPosition()
 	c.propagateMousePosition(mx/c.Font.TileWidth, my/c.Font.TileHeight)
+	c.propagateComponentUpdates(c.elapsedTPS())
+	c.mtx.RUnlock()
 
 	if c.tickHook != nil {
 		if err := c.tickHook(c.elapsedTPS()); err != nil {
@@ -354,9 +387,7 @@ func (c *Console) update(screen *ebiten.Image) error {
 		}
 	}
 
-	c.mtx.RLock()
-	c.draw(screen, 0, 0)
-	c.mtx.RUnlock()
+	c.draw(screen, timeElapsed, 0, 0)
 
 	if c.postRenderHook != nil {
 		if err := c.postRenderHook(screen, timeElapsed); err != nil {
