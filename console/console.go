@@ -212,7 +212,7 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 		}
 
 		if mustUpdate {
-			c.updates = append(c.updates, px+x)
+			c.queueUpdate(px + x)
 		}
 	}
 
