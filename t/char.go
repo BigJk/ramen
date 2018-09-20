@@ -8,12 +8,9 @@ type CharTransform struct {
 }
 
 // Transform sets the char value of a cell
-func (c CharTransform) Transform(cell *ramen.Cell) (bool, error) {
-	if cell.Char == c.char {
-		return false, nil
-	}
+func (c CharTransform) Transform(cell *ramen.Cell) error {
 	cell.Char = c.char
-	return true, nil
+	return nil
 }
 
 // Char creates a transformer that sets the cells char value to the given int

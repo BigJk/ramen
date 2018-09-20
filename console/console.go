@@ -7,8 +7,6 @@ import (
 
 	"sort"
 
-	"image/color"
-
 	"github.com/BigJk/ramen"
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
@@ -36,11 +34,8 @@ type Console struct {
 	priority     int
 	isSubConsole bool
 
-	mtx     *sync.RWMutex
-	updates []int
-	buffer  [][]ramen.Cell
-
-	lines []*ebiten.Image
+	mtx    *sync.RWMutex
+	buffer [][]ramen.Cell
 
 	tickHook       func(timeElapsed float64) error
 	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
@@ -73,9 +68,7 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 		Font:        font,
 		SubConsoles: make([]*Console, 0),
 		mtx:         new(sync.RWMutex),
-		updates:     make([]int, 0),
 		buffer:      buf,
-		lines:       lines,
 	}, nil
 }
 
@@ -186,7 +179,6 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 	c.mtx.Lock()
 
 	for px := 0; px < width; px++ {
-		mustUpdate := false
 		for py := 0; py < height; py++ {
 			if err := c.checkOutOfBounds(px+x, py+y); err != nil {
 				return err
@@ -195,24 +187,15 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 			if len(transformer) == 0 {
 				if c.buffer[px+x][py+y] != emptyCell {
 					c.buffer[px+x][py+y] = emptyCell
-					mustUpdate = true
 				}
 			} else {
 				for i := range transformer {
-					changed, err := transformer[i].Transform(&c.buffer[px+x][py+y])
+					err := transformer[i].Transform(&c.buffer[px+x][py+y])
 					if err != nil {
 						return err
 					}
-
-					if changed {
-						mustUpdate = true
-					}
 				}
 			}
-		}
-
-		if mustUpdate {
-			c.queueUpdate(px + x)
 		}
 	}
 
@@ -232,19 +215,11 @@ func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 
 	c.mtx.Lock()
 
-	mustUpdate := false
 	for i := range transformer {
-		changed, err := transformer[i].Transform(&c.buffer[x][y])
+		err := transformer[i].Transform(&c.buffer[x][y])
 		if err != nil {
 			return err
 		}
-		if changed {
-			mustUpdate = true
-		}
-	}
-
-	if mustUpdate {
-		c.queueUpdate(x)
 	}
 
 	c.mtx.Unlock()
@@ -284,15 +259,6 @@ func (c *Console) sortSubConsoles() {
 	c.mtx.Unlock()
 }
 
-func (c *Console) queueUpdate(x int) {
-	for i := range c.updates {
-		if c.updates[i] == x {
-			return
-		}
-	}
-	c.updates = append(c.updates, x)
-}
-
 func (c *Console) checkOutOfBounds(x, y int) error {
 	if x < 0 || y < 0 || x >= c.Width || y >= c.Height {
 		return fmt.Errorf("position out of bounds")
@@ -300,55 +266,26 @@ func (c *Console) checkOutOfBounds(x, y int) error {
 	return nil
 }
 
-func (c *Console) updateLine(x int) {
-	c.lines[x].Fill(color.NRGBA{0, 0, 0, 0})
-
-	// Draw background and chars separately in order to group
-	// draw calls from the same sources. This should increase
-	// performance.
-	//
-	// (https://github.com/hajimehoshi/ebiten/wiki/Performance-Tips)
-
-	for y := range c.buffer[x] {
-		if c.buffer[x][y].Background.A == 0 {
-			continue
-		}
-
-		ebitenutil.DrawRect(c.lines[x], 0, float64(y*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
-	}
-
-	for y := range c.buffer[x] {
-		if c.buffer[x][y].Char == 0 {
-			continue
-		}
-
-		op := c.Font.ToOptions(c.buffer[x][y].Char)
-		op.GeoM.Translate(0, float64(y*c.Font.TileHeight))
-
-		if !c.Font.IsTile(c.buffer[x][y].Char) {
-			op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
-		}
-
-		c.lines[x].DrawImage(c.Font.Image, op)
-	}
-}
-
-func (c *Console) flushUpdates() {
-	for i := range c.updates {
-		c.updateLine(c.updates[i])
-	}
-
-	if len(c.updates) > 0 {
-		c.updates = make([]int, 0)
-	}
-}
-
 func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
-	c.flushUpdates()
 	for x := range c.buffer {
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64((x+c.x+offsetX)*c.Font.TileWidth), float64((c.y+offsetY)*c.Font.TileHeight))
-		screen.DrawImage(c.lines[x], op)
+		for y := range c.buffer[x] {
+			if c.buffer[x][y].Background.A == 0 {
+				continue
+			}
+
+			ebitenutil.DrawRect(screen, float64((offsetX+x)*c.Font.TileWidth), float64((offsetY+y)*c.Font.TileHeight), float64(c.Font.TileWidth), float64(c.Font.TileHeight), c.buffer[x][y].Background)
+		}
+	}
+
+	for x := range c.buffer {
+		for y := range c.buffer[x] {
+			op := c.Font.ToOptions(c.buffer[x][y].Char)
+			if !c.Font.IsTile(c.buffer[x][y].Char) {
+				op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
+			}
+			op.GeoM.Translate(float64((offsetX+x)*c.Font.TileWidth), float64((offsetY+y)*c.Font.TileHeight))
+			screen.DrawImage(c.Font.Image, op)
+		}
 	}
 
 	for i := range c.SubConsoles {

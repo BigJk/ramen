@@ -11,12 +11,9 @@ type BackgroundTransform struct {
 }
 
 // Transform sets the background color of a cell
-func (b BackgroundTransform) Transform(cell *ramen.Cell) (bool, error) {
-	if cell.Background == b.color {
-		return false, nil
-	}
+func (b BackgroundTransform) Transform(cell *ramen.Cell) error {
 	cell.Background = b.color
-	return true, nil
+	return nil
 }
 
 // Background creates a new transformer that sets the background color of a cell to the given color
