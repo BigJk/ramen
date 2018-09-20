@@ -1,5 +1,7 @@
 package consolecolor
 
+import "fmt"
+
 // Color represents a ARGB color in the console
 type Color struct {
 	R byte
@@ -16,6 +18,19 @@ func New(r, g, b byte) Color {
 // NewTransparent creates a new color from R,G,B,A values
 func NewTransparent(r, g, b, a byte) Color {
 	return Color{r, g, b, a}
+}
+
+// NewHex creates a new color from a hex string
+func NewHex(hex string) Color {
+	format := "#%02x%02x%02x"
+	if len(hex) == 4 {
+		format = "#%1x%1x%1x"
+	}
+
+	var r, g, b byte
+	fmt.Sscanf(hex, format, &r, &g, &b)
+
+	return Color{r, g, b, 255}
 }
 
 // RGBA returns the color values as uint32s
