@@ -37,6 +37,9 @@ type Console struct {
 	mtx    *sync.RWMutex
 	buffer [][]ramen.Cell
 
+	mouseX int
+	mouseY int
+
 	tickHook       func(timeElapsed float64) error
 	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
@@ -251,6 +254,12 @@ func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 	}
 }
 
+// MousePosition returns the cell that the mouse cursor is currently in. If it returns
+// (-1, -1) the mouse cursor is currently not in the console.
+func (c *Console) MousePosition() (int, int) {
+	return c.mouseX, c.mouseY
+}
+
 func (c *Console) sortSubConsoles() {
 	c.mtx.Lock()
 	sort.Slice(c.SubConsoles, func(i, j int) bool {
@@ -293,6 +302,20 @@ func (c *Console) draw(screen *ebiten.Image, offsetX, offsetY int) {
 	}
 }
 
+func (c *Console) propagateMousePosition(x, y int) {
+	c.mouseX = x - c.x
+	c.mouseY = y - c.y
+
+	if c.mouseX >= c.Width || c.mouseY >= c.Height {
+		c.mouseX = -1
+		c.mouseY = -1
+	} else {
+		for i := range c.SubConsoles {
+			c.SubConsoles[i].propagateMousePosition(c.mouseX, c.mouseY)
+		}
+	}
+}
+
 func (c *Console) elapsedTPS() float64 {
 	e := 1.0 / math.Min(float64(ebiten.MaxTPS()), ebiten.CurrentTPS())
 	if e > math.MaxFloat64 {
@@ -310,6 +333,9 @@ func (c *Console) elapsedFPS() float64 {
 }
 
 func (c *Console) update(screen *ebiten.Image) error {
+	mx, my := ebiten.CursorPosition()
+	c.propagateMousePosition(mx/c.Font.TileWidth, my/c.Font.TileHeight)
+
 	if c.tickHook != nil {
 		if err := c.tickHook(c.elapsedTPS()); err != nil {
 			return err
