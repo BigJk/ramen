@@ -24,7 +24,7 @@
 ## Get Started
 
 ```
-go get github.com/BigJk/ramen
+go get github.com/BigJk/ramen/...
 ```
 
 ## Example
