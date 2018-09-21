@@ -42,6 +42,7 @@ import (
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten"
+	"fmt"
 )
 
 func main() {
@@ -91,5 +92,6 @@ func main() {
 
 ## Screenshots
 
-<img src="./.github/screen_colored_tiles.png" width="538" align="left">
-<img src="./.github/screen_text.png" width="200" align="left">
+<img src="./.github/screen_colored_tiles.png" width="538">
+<img src="./.github/screen_text.png" width="200">
+<img src="./.github/screen_comp_shaded.png" width="314">
