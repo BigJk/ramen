@@ -1,3 +1,4 @@
+// Package consolecolor provides console color creation functions.
 package consolecolor
 
 import "fmt"

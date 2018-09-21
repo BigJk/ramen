@@ -1,3 +1,4 @@
+// Package font provides functionality to load ascii fonts from png files.
 package font
 
 import (

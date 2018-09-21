@@ -1,3 +1,4 @@
+// Package t provides functionality to transform (change) cells in the console.
 package t
 
 import "github.com/BigJk/ramen"

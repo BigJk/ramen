@@ -1,3 +1,4 @@
+// Package xp provides REXPaint (.xp) file parsing.
 package xp
 
 import (

@@ -1,3 +1,4 @@
+// Package console provides a emulated console view.
 package console
 
 import (
