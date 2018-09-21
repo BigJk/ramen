@@ -33,7 +33,7 @@ func (cb *ComponentBase) Position() (int, int) {
 	return cb.X, cb.Y
 }
 
-// Position returns the size of the component.
+// Size returns the size of the component.
 func (cb *ComponentBase) Size() (int, int) {
 	return cb.Width, cb.Height
 }
