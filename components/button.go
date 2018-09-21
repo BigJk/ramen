@@ -51,7 +51,7 @@ func NewButton(x, y, width, height int, text string, callback ClickedCallback) *
 func (b *Button) Update(con *console.Console, timeElapsed float64) bool {
 	b.state = CalculateComponentState(con, b.X, b.Y, b.Width, b.Height)
 
-	if inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+	if b.state == ComponentHovered && inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
 		b.clickedCallback()
 	}
 
