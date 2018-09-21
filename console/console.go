@@ -13,13 +13,14 @@ import (
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 var emptyCell = ramen.Cell{
 	Foreground: consolecolor.New(255, 255, 255),
 }
 
-// Console represents a emulated console view
+// Console represents a emulated console view.
 type Console struct {
 	Title       string
 	Width       int
@@ -47,7 +48,7 @@ type Console struct {
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
 
-// New creates a new console
+// New creates a new console.
 func New(width, height int, font *font.Font, title string) (*Console, error) {
 	buf := make([][]ramen.Cell, width)
 	for x := range buf {
@@ -77,7 +78,7 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 	}, nil
 }
 
-// Start will open the console window with the given scale
+// Start will open the console window with the given scale.
 func (c *Console) Start(scale float64) error {
 	if c.isSubConsole {
 		return fmt.Errorf("only the main console can be started")
@@ -126,14 +127,14 @@ func (c *Console) SetPriority(priority int) error {
 	return nil
 }
 
-// AddComponent adds a component that should be updated and rendered to the console
+// AddComponent adds a component that should be updated and rendered to the console.
 func (c *Console) AddComponent(component Component) {
 	c.mtx.Lock()
 	c.components = append(c.components, component)
 	c.mtx.Unlock()
 }
 
-// CreateSubConsole creates a new sub-console
+// CreateSubConsole creates a new sub-console.
 func (c *Console) CreateSubConsole(x, y, width, height int) (*Console, error) {
 	if x < 0 || y < 0 || x+width > c.Width || y+height > c.Height || width <= 0 || height <= 0 {
 		return nil, fmt.Errorf("sub-console is out of bounds")
@@ -160,7 +161,7 @@ func (c *Console) CreateSubConsole(x, y, width, height int) (*Console, error) {
 	return sub, nil
 }
 
-// RemoveSubConsole removes a sub-console from his parent
+// RemoveSubConsole removes a sub-console from his parent.
 func (c *Console) RemoveSubConsole(con *Console) error {
 	c.mtx.Lock()
 	for i := range c.SubConsoles {
@@ -269,6 +270,11 @@ func (c *Console) MousePosition() (int, int) {
 	return c.mouseX, c.mouseY
 }
 
+// MouseInArea checks if the mouse cursor is currently in the given area.
+func (c *Console) MouseInArea(x, y, width, height int) bool {
+	return c.mouseX >= x && c.mouseY >= y && c.mouseX < x+width && c.mouseY < y+height
+}
+
 func (c *Console) sortSubConsoles() {
 	c.mtx.Lock()
 	sort.Slice(c.SubConsoles, func(i, j int) bool {
@@ -335,7 +341,13 @@ func (c *Console) propagateMousePosition(x, y int) {
 
 func (c *Console) propagateComponentUpdates(timeElapsed float64) {
 	for i := 0; i < len(c.components); i++ {
-		if c.components[i].ShouldClose() || !c.components[i].Update(timeElapsed) {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			x, y := c.components[i].Position()
+			w, h := c.components[i].Size()
+			c.components[i].SetFocus(c.MouseInArea(x, y, w, h))
+		}
+
+		if c.components[i].ShouldClose() || !c.components[i].Update(c, timeElapsed) {
 			c.components = append(c.components[:i], c.components[i+1:]...)
 			i--
 		}
