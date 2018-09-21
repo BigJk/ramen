@@ -51,3 +51,23 @@ func (c Color) RGBA() (r, g, b, a uint32) {
 func (c Color) Floats() (r, g, b, a float64) {
 	return float64(c.R) / 0xff, float64(c.G) / 0xff, float64(c.B) / 0xff, float64(c.A) / 0xff
 }
+
+// SetR creates a new color with a changed red value
+func (c Color) SetR(r byte) Color {
+	return Color{r, c.G, c.B, c.A}
+}
+
+// SetG creates a new color with a changed green value
+func (c Color) SetG(g byte) Color {
+	return Color{c.R, g, c.B, c.A}
+}
+
+// SetB creates a new color with a changed blue value
+func (c Color) SetB(b byte) Color {
+	return Color{c.R, c.G, b, c.A}
+}
+
+// SetA creates a new color with a changed alpha value
+func (c Color) SetA(a byte) Color {
+	return Color{c.R, c.G, c.B, a}
+}
