@@ -22,9 +22,8 @@ func CalculateComponentState(con *console.Console, x, y, w, h int) ComponentStat
 	if con.MouseInArea(x, y, w, h) {
 		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 			return ComponentClicked
-		} else {
-			return ComponentHovered
 		}
+		return ComponentHovered
 	}
 	return ComponentIdle
 }
