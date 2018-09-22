@@ -36,7 +36,7 @@ type Console struct {
 	priority     int
 	isSubConsole bool
 
-	mtx    *sync.RWMutex
+	mtx    sync.RWMutex
 	buffer [][]ramen.Cell
 
 	mouseX int
@@ -74,7 +74,6 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 		Height:      height,
 		Font:        font,
 		SubConsoles: make([]*Console, 0),
-		mtx:         new(sync.RWMutex),
 		buffer:      buf,
 	}, nil
 }
@@ -342,7 +341,9 @@ func (c *Console) propagateMousePosition(x, y int) {
 
 func (c *Console) propagateComponentUpdates(timeElapsed float64) {
 	for i := 0; i < len(c.components); i++ {
-		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		if !c.components[i].ShouldDraw() {
+			c.components[i].SetFocus(false)
+		} else if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			x, y := c.components[i].Position()
 			w, h := c.components[i].Size()
 			c.components[i].SetFocus(c.MouseInArea(x, y, w, h))
