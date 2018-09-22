@@ -1,5 +1,7 @@
 package console
 
+import "sync"
+
 // ComponentAttributes represents a closable object with a position and size.
 type ComponentAttributes interface {
 	Position() (int, int)
@@ -23,6 +25,7 @@ type ComponentBase struct {
 	Width  int
 	Height int
 
+	mtx   sync.Mutex
 	show  bool
 	close bool
 	focus bool
@@ -40,31 +43,43 @@ func (cb *ComponentBase) Size() (int, int) {
 
 // ShouldClose returns true if the component should be closed and deleted from the console.
 func (cb *ComponentBase) ShouldClose() bool {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	return cb.close
 }
 
 // ShouldDraw returns true if the component should be drawn.
 func (cb *ComponentBase) ShouldDraw() bool {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	return cb.show
 }
 
 // Close tells the component to close and remove itself from the parents component list on the next update.
 func (cb *ComponentBase) Close() {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	cb.close = true
 }
 
 // Show shows or hides the component.
 func (cb *ComponentBase) Show(value bool) {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	cb.show = value
 }
 
 // IsFocused returns true if the component is active, which means it was clicked on.
 func (cb *ComponentBase) IsFocused() bool {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	return cb.focus
 }
 
 // SetFocus adds or remove focus from component.
 func (cb *ComponentBase) SetFocus(value bool) {
+	cb.mtx.Lock()
+	defer cb.mtx.Unlock()
 	cb.focus = value
 }
 
