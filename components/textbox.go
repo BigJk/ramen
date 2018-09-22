@@ -1,6 +1,8 @@
 package components
 
 import (
+	"sync"
+
 	"github.com/BigJk/ramen/console"
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/t"
@@ -18,7 +20,8 @@ type EnterCallback func()
 type TextBox struct {
 	*console.ComponentBase
 
-	Text string
+	mtx  sync.RWMutex
+	text string
 
 	textChangeCallback TextChangeCallback
 	enterCallback      EnterCallback
@@ -57,11 +60,28 @@ func (tb *TextBox) Update(con *console.Console, timeElapsed float64) bool {
 		return true
 	}
 
-	tb.Text += string(ebiten.InputChars())
+	textChanged := false
+
+	tb.mtx.Lock()
+	if len(ebiten.InputChars()) > 0 {
+		textChanged = true
+	}
+	tb.text += string(ebiten.InputChars())
+
 	if tb.repeatingKeyPressed(ebiten.KeyBackspace) {
-		if len(tb.Text) >= 1 {
-			tb.Text = tb.Text[:len(tb.Text)-1]
+		if len(tb.text) >= 1 {
+			tb.text = tb.text[:len(tb.text)-1]
+			textChanged = true
 		}
+	}
+
+	if textChanged && tb.textChangeCallback != nil {
+		tb.textChangeCallback(tb.text)
+	}
+	tb.mtx.Unlock()
+
+	if tb.enterCallback != nil && inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		tb.enterCallback()
 	}
 
 	return true
@@ -72,7 +92,10 @@ func (tb *TextBox) Draw(con *console.Console, timeElapsed float64) {
 	// TODO: multi-line support
 
 	tb.blink += timeElapsed
-	text := tb.Text
+
+	tb.mtx.RLock()
+	text := tb.text
+	tb.mtx.RUnlock()
 
 	var bgColor consolecolor.Color
 	var fColor consolecolor.Color
@@ -119,6 +142,20 @@ func (tb *TextBox) SetTextChanged(callback TextChangeCallback) {
 // SetEnterCallback sets the enter callback.
 func (tb *TextBox) SetEnterCallback(callback EnterCallback) {
 	tb.enterCallback = callback
+}
+
+// SetText changes the text of the textbox.
+func (tb *TextBox) SetText(newText string) {
+	tb.mtx.Lock()
+	tb.text = newText
+	tb.mtx.Unlock()
+}
+
+// GetText returns the text of the textbox.
+func (tb *TextBox) GetText() string {
+	tb.mtx.RLock()
+	defer tb.mtx.RUnlock()
+	return tb.text
 }
 
 // SetBackground sets the background colors for textbox. Parameters that
