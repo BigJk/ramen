@@ -4,11 +4,13 @@ package font
 import (
 	"image"
 
+	"io"
+
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 )
 
-// Font represents a console font
+// Font represents a console font.
 type Font struct {
 	File       string
 	Image      *ebiten.Image
@@ -19,14 +21,26 @@ type Font struct {
 	Tiles      map[int]bool
 }
 
-// New creates a new font
+// New creates a new font.
 func New(filePath string, tileWidth, tileHeight int) (*Font, error) {
 	file, err := ebitenutil.OpenFile(filePath)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
-	img, _, err := image.Decode(file)
+	f, err := NewFromReader(file, tileWidth, tileHeight)
+	if err != nil {
+		return nil, err
+	}
+	f.File = filePath
+
+	return f, nil
+}
+
+// NewFromReader creates a new font from a reader.
+func NewFromReader(reader io.Reader, tileWidth, tileHeight int) (*Font, error) {
+	img, _, err := image.Decode(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -36,10 +50,10 @@ func New(filePath string, tileWidth, tileHeight int) (*Font, error) {
 		return nil, err
 	}
 
-	return &Font{filePath, fontImage, tileWidth, tileHeight, img.Bounds().Max.X / tileWidth, img.Bounds().Max.Y / tileHeight, make(map[int]bool)}, nil
+	return &Font{"", fontImage, tileWidth, tileHeight, img.Bounds().Max.X / tileWidth, img.Bounds().Max.Y / tileHeight, make(map[int]bool)}, nil
 }
 
-// ToOptions extracts the rectangle of a given char from the base image of the font
+// ToOptions extracts the rectangle of a given char from the base image of the font.
 func (f *Font) ToOptions(char int) *ebiten.DrawImageOptions {
 	op := &ebiten.DrawImageOptions{}
 
