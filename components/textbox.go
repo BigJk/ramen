@@ -42,11 +42,11 @@ type TextBox struct {
 func NewTextbox(x, y, width, height int) *TextBox {
 	tb := TextBox{
 		ComponentBase:      console.NewComponentBase(x, y, width, height),
-		background:         consolecolor.NewHex("#353a41"),
-		backgroundHover:    consolecolor.NewHex("#3a4047"),
-		backgroundClicked:  consolecolor.NewHex("#2c3036"),
-		foreground:         consolecolor.NewHex("#e1e1e1"),
-		foregroundInactive: consolecolor.NewHex("#949494"),
+		background:         colorBg,
+		backgroundHover:    colorBgHover,
+		backgroundClicked:  colorBgClicked,
+		foreground:         colorFg,
+		foregroundInactive: colorFgInactive,
 	}
 
 	return &tb

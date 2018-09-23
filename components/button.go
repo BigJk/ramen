@@ -36,12 +36,12 @@ func NewButton(x, y, width, height int, text string, callback ClickedCallback) *
 		ComponentBase:     console.NewComponentBase(x, y, width, height),
 		text:              text,
 		clickedCallback:   callback,
-		background:        consolecolor.NewHex("#353a41"),
-		backgroundHover:   consolecolor.NewHex("#3a4047"),
-		backgroundClicked: consolecolor.NewHex("#2c3036"),
-		foreground:        consolecolor.NewHex("#e1e1e1"),
-		foregroundHover:   consolecolor.NewHex("#e1e1e1"),
-		foregroundClicked: consolecolor.NewHex("#e1e1e1"),
+		background:        colorBg,
+		backgroundHover:   colorBgHover,
+		backgroundClicked: colorBgClicked,
+		foreground:        colorFg,
+		foregroundHover:   colorFgHover,
+		foregroundClicked: colorFgClicked,
 	}
 
 	return &b
