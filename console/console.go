@@ -265,7 +265,7 @@ func (c *Console) PrintBoundedOffset(x, y, width, height, sy int, text string, t
 
 	line := 0
 	linePos := 0
-	for i := range cleaned {
+	for i, val := range cleaned {
 		if cleaned[i] == '\n' || width > 0 && linePos >= width {
 			y++
 			linePos = 0
@@ -282,7 +282,7 @@ func (c *Console) PrintBoundedOffset(x, y, width, height, sy int, text string, t
 
 		if line >= sy {
 			trans := transformer
-			trans = append(trans, t.CharByte(cleaned[i]))
+			trans = append(trans, t.Char(int(val)))
 			trans = append(trans, colors.GetCurrentTransformer(i)...)
 
 			c.Transform(linePos+x, y-sy, trans...)
