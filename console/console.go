@@ -241,14 +241,17 @@ func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 }
 
 // Print prints a text onto the console. To give the text a different foreground or
-// background color use transformer.
+// background color use transformer. This function also supports inlined color
+// definitions.
 func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 	if y >= c.Height {
 		return
 	}
 
+	cleaned, colors := ParseColoredText(text)
+
 	linePos := 0
-	for i := range text {
+	for i := range cleaned {
 		if x+i >= c.Width {
 			continue
 		}
@@ -259,7 +262,11 @@ func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 			continue
 		}
 
-		c.Transform(linePos+x, y, append(transformer, t.CharByte(text[i]))...)
+		trans := transformer
+		trans = append(trans, t.CharByte(cleaned[i]))
+		trans = append(trans, colors.GetCurrentTransformer(i)...)
+
+		c.Transform(linePos+x, y, trans...)
 		linePos++
 	}
 }
