@@ -16,6 +16,7 @@
 - Fonts can contain chars and colored tiles
 - Create sub-consoles to organize rendering
 - Component based ui system
+- Inlined color definitions in strings
 - Pre-build components ready to use
   - TextBox
   - Button
@@ -89,6 +90,14 @@ func main() {
 }
 
 ```
+
+## Inlined Color Definitions
+
+The **console.Print** function supports parsing of inlined color definitions that can change the forground and background color of parts of the string.
+
+``[[f:#ff0000]]red foreground\n[[f:#ffffff|b:#000000]]white foreground and black background\n[[b:#00ff00]]green background``
+
+<img src="./.github/screen_colored_string.png" width="400">
 
 ## Screenshots
 
