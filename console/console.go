@@ -244,31 +244,80 @@ func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 // background color use transformer. This function also supports inlined color
 // definitions.
 func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
-	if y >= c.Height {
-		return
-	}
+	c.PrintBounded(x, y, 0, 0, text, transformer...)
+}
 
+// PrintBounded prints a text onto the console that is bounded by a width and height.
+// If you set width or height to <= 0 this bound won't have a limit.
+// To give the text a different foreground or background color use transformer.
+// This function also supports inlined color definitions.
+func (c *Console) PrintBounded(x, y, width, height int, text string, transformer ...t.Transformer) int {
+	return c.PrintBoundedOffset(x, y, width, height, 0, text, transformer...)
+}
+
+// PrintBoundedOffset prints a text onto the console that is bounded by a width and height
+// and skips the first sy lines.
+// If you set width or height to <= 0 this bound won't have a limit.
+// To give the text a different foreground or background color use transformer.
+// This function also supports inlined color definitions.
+func (c *Console) PrintBoundedOffset(x, y, width, height, sy int, text string, transformer ...t.Transformer) int {
 	cleaned, colors := ParseColoredText(text)
 
+	line := 0
 	linePos := 0
 	for i := range cleaned {
-		if cleaned[i] == '\n' {
+		if cleaned[i] == '\n' || width > 0 && linePos >= width {
 			y++
 			linePos = 0
+			line++
+
+			if cleaned[i] == '\n' {
+				continue
+			}
+		}
+
+		if x+linePos >= c.Width || height > 0 && line >= height {
 			continue
 		}
 
-		if x+linePos >= c.Width {
-			continue
+		if line >= sy {
+			trans := transformer
+			trans = append(trans, t.CharByte(cleaned[i]))
+			trans = append(trans, colors.GetCurrentTransformer(i)...)
+
+			c.Transform(linePos+x, y-sy, trans...)
 		}
 
-		trans := transformer
-		trans = append(trans, t.CharByte(cleaned[i]))
-		trans = append(trans, colors.GetCurrentTransformer(i)...)
-
-		c.Transform(linePos+x, y, trans...)
 		linePos++
 	}
+
+	return line + 1 - sy
+}
+
+// CalcTextHeight pre-calculates the height a text will need.
+func (c *Console) CalcTextHeight(width, height int, text string) int {
+	cleaned, _ := ParseColoredText(text)
+
+	line := 0
+	linePos := 0
+	for i := range cleaned {
+		if cleaned[i] == '\n' || width > 0 && linePos >= width {
+			linePos = 0
+			line++
+
+			if cleaned[i] == '\n' {
+				continue
+			}
+		}
+
+		if height > 0 && line >= height {
+			continue
+		}
+
+		linePos++
+	}
+
+	return line + 1
 }
 
 // MousePosition returns the cell that the mouse cursor is currently in. If it returns
