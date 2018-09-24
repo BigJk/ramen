@@ -252,13 +252,13 @@ func (c *Console) Print(x, y int, text string, transformer ...t.Transformer) {
 
 	linePos := 0
 	for i := range cleaned {
-		if x+i >= c.Width {
+		if cleaned[i] == '\n' {
+			y++
+			linePos = 0
 			continue
 		}
 
-		if text[i] == '\n' {
-			y++
-			linePos = 0
+		if x+linePos >= c.Width {
 			continue
 		}
 
