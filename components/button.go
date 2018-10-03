@@ -47,11 +47,20 @@ func NewButton(x, y, width, height int, text string, callback ClickedCallback) *
 	return &b
 }
 
+// FocusOnClick returns true if a click should focus the button
+func (b *Button) FocusOnClick() bool {
+	return false
+}
+
 // Update updates the button
 func (b *Button) Update(con *console.Console, timeElapsed float64) bool {
 	b.state = CalculateComponentState(con, b.X, b.Y, b.Width, b.Height)
 
 	if b.state == ComponentHovered && inpututil.IsMouseButtonJustReleased(ebiten.MouseButtonLeft) {
+		b.clickedCallback()
+	}
+
+	if b.IsFocused() && inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		b.clickedCallback()
 	}
 
@@ -75,6 +84,11 @@ func (b *Button) Draw(con *console.Console, timeElapsed float64) {
 	case ComponentClicked:
 		bgColor = b.backgroundClicked
 		fColor = b.foregroundClicked
+	}
+
+	if b.IsFocused() {
+		bgColor = b.backgroundHover
+		fColor = b.foregroundHover
 	}
 
 	con.Clear(b.X, b.Y, b.Width, b.Height, t.Background(bgColor))

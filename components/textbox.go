@@ -52,6 +52,11 @@ func NewTextbox(x, y, width, height int) *TextBox {
 	return &tb
 }
 
+// FocusOnClick returns true if a click should focus the textbox
+func (tb *TextBox) FocusOnClick() bool {
+	return true
+}
+
 // Update updates the textbox.
 func (tb *TextBox) Update(con *console.Console, timeElapsed float64) bool {
 	tb.state = CalculateComponentState(con, tb.X, tb.Y, tb.Width, tb.Height)
@@ -112,6 +117,11 @@ func (tb *TextBox) Draw(con *console.Console, timeElapsed float64) {
 		fColor = tb.foreground
 	case ComponentClicked:
 		bgColor = tb.backgroundClicked
+		fColor = tb.foreground
+	}
+
+	if tb.IsFocused() {
+		bgColor = tb.backgroundHover
 		fColor = tb.foreground
 	}
 

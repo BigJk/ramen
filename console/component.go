@@ -16,6 +16,7 @@ type ComponentAttributes interface {
 type ComponentLogic interface {
 	Update(con *Console, timeElapsed float64) bool
 	Draw(con *Console, timeElapsed float64)
+	FocusOnClick() bool
 }
 
 // ComponentBase represents the base for a ui element on the console.

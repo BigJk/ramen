@@ -396,13 +396,36 @@ func (c *Console) propagateMousePosition(x, y int) {
 }
 
 func (c *Console) propagateComponentUpdates(timeElapsed float64) {
-	for i := 0; i < len(c.components); i++ {
+	setFocused := false
+
+focusUpdate:
+	for i := range c.components {
 		if !c.components[i].ShouldDraw() {
 			c.components[i].SetFocus(false)
-		} else if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		} else if c.components[i].FocusOnClick() && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			x, y := c.components[i].Position()
 			w, h := c.components[i].Size()
 			c.components[i].SetFocus(c.MouseInArea(x, y, w, h))
+		} else if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+			if c.components[i].IsFocused() {
+				c.components[i].SetFocus(false)
+				for j := range c.components {
+					if c.components[(j+i+1)%len(c.components)].ShouldDraw() {
+						c.components[(j+i+1)%len(c.components)].SetFocus(true)
+						setFocused = true
+						break focusUpdate
+					}
+				}
+			}
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeyTab) && !setFocused {
+			for i := range c.components {
+				if c.components[i].ShouldDraw() {
+					c.components[i].SetFocus(true)
+					break
+				}
+			}
 		}
 
 		if c.components[i].ShouldClose() || !c.components[i].Update(c, timeElapsed) {
