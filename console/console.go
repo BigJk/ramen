@@ -366,12 +366,15 @@ func (c *Console) draw(screen *ebiten.Image, timeElapsed float64, offsetX, offse
 
 	for x := range c.buffer {
 		for y := range c.buffer[x] {
-			op := c.Font.ToOptions(c.buffer[x][y].Char)
-			if !c.Font.IsTile(c.buffer[x][y].Char) {
-				op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
+			charImage := c.Font.ToSubImage(c.buffer[x][y].Char)
+			if charImage != nil {
+				op := ebiten.DrawImageOptions{}
+				if !c.Font.IsTile(c.buffer[x][y].Char) {
+					op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
+				}
+				op.GeoM.Translate(float64((offsetX+c.x+x)*c.Font.TileWidth), float64((offsetY+c.y+y)*c.Font.TileHeight))
+				_ = screen.DrawImage(charImage, &op)
 			}
-			op.GeoM.Translate(float64((offsetX+c.x+x)*c.Font.TileWidth), float64((offsetY+c.y+y)*c.Font.TileHeight))
-			screen.DrawImage(c.Font.Image, op)
 		}
 	}
 	c.mtx.RUnlock()

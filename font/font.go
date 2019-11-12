@@ -53,17 +53,18 @@ func NewFromReader(reader io.Reader, tileWidth, tileHeight int) (*Font, error) {
 	return &Font{"", fontImage, tileWidth, tileHeight, img.Bounds().Max.X / tileWidth, img.Bounds().Max.Y / tileHeight, make(map[int]bool)}, nil
 }
 
-// ToOptions extracts the rectangle of a given char from the base image of the font.
-func (f *Font) ToOptions(char int) *ebiten.DrawImageOptions {
-	op := &ebiten.DrawImageOptions{}
-
+// ToSubImage extracts the image of a given char from the base image of the font.
+func (f *Font) ToSubImage(char int) *ebiten.Image {
 	x := (int(char) % f.TileSizeX) * f.TileWidth
 	y := (int(char) / f.TileSizeY) * f.TileHeight
 
 	r := image.Rect(x, y, x+f.TileWidth, y+f.TileHeight)
-	op.SourceRect = &r
 
-	return op
+	if r.Max.X > f.Image.Bounds().Max.X || r.Max.Y > f.Image.Bounds().Max.Y {
+		return nil
+	}
+
+	return f.Image.SubImage(r).(*ebiten.Image)
 }
 
 // SetTiles changes if a char is a colored tile or not.
