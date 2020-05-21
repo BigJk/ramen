@@ -197,11 +197,10 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 				return err
 			}
 
-			if len(transformer) == 0 {
-				if c.buffer[px+x][py+y] != emptyCell {
-					c.buffer[px+x][py+y] = emptyCell
-				}
-			} else {
+			if c.buffer[px+x][py+y] != emptyCell {
+				c.buffer[px+x][py+y] = emptyCell
+			}
+			if len(transformer) > 0 {
 				for i := range transformer {
 					err := transformer[i].Transform(&c.buffer[px+x][py+y])
 					if err != nil {
