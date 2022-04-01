@@ -93,6 +93,7 @@ func (c *Console) Start(scale float64) error {
 	}
 
 	ebiten.SetWindowSize(int(float64(c.Width*c.Font.TileWidth)*scale), int(float64(c.Height*c.Font.TileHeight)*scale))
+	ebiten.SetWindowTitle(c.Title)
 	return ebiten.RunGame(c)
 }
 
@@ -343,7 +344,7 @@ func (c *Console) MouseInArea(x, y, width, height int) bool {
 
 func (c *Console) sortSubConsoles() {
 	c.mtx.Lock()
-	sort.Slice(c.SubConsoles, func(i, j int) bool {
+	sort.SliceStable(c.SubConsoles, func(i, j int) bool {
 		return c.SubConsoles[i].priority < c.SubConsoles[j].priority
 	})
 	c.mtx.Unlock()
