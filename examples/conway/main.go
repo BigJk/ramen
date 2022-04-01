@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/console"
-	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -53,9 +53,9 @@ func main() {
 			for x := range board {
 				for y := range board[x] {
 					if board[x][y] {
-						con.Transform(x, y, t.Background(consolecolor.New(255, 255, 255)))
+						con.Transform(x, y, t.Background(concolor.RGB(255, 255, 255)))
 					} else {
-						con.Transform(x, y, t.Background(consolecolor.New(0, 0, 0)))
+						con.Transform(x, y, t.Background(concolor.RGB(0, 0, 0)))
 					}
 				}
 			}

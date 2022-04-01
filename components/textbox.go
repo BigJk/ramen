@@ -3,8 +3,8 @@ package components
 import (
 	"sync"
 
+	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/console"
-	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -26,12 +26,12 @@ type TextBox struct {
 	textChangeCallback TextChangeCallback
 	enterCallback      EnterCallback
 
-	background        consolecolor.Color
-	backgroundHover   consolecolor.Color
-	backgroundClicked consolecolor.Color
+	background        concolor.Color
+	backgroundHover   concolor.Color
+	backgroundClicked concolor.Color
 
-	foreground         consolecolor.Color
-	foregroundInactive consolecolor.Color
+	foreground         concolor.Color
+	foregroundInactive concolor.Color
 
 	blink float64
 
@@ -102,8 +102,8 @@ func (tb *TextBox) Draw(con *console.Console, timeElapsed float64) {
 	text := tb.text
 	tb.mtx.RUnlock()
 
-	var bgColor consolecolor.Color
-	var fColor consolecolor.Color
+	var bgColor concolor.Color
+	var fColor concolor.Color
 	switch tb.state {
 	case ComponentIdle:
 		bgColor = tb.background
@@ -170,7 +170,7 @@ func (tb *TextBox) GetText() string {
 
 // SetBackground sets the background colors for textbox. Parameters that
 // are nil will be ignored and not set.
-func (tb *TextBox) SetBackground(bg, bgHover, bgClicked *consolecolor.Color) {
+func (tb *TextBox) SetBackground(bg, bgHover, bgClicked *concolor.Color) {
 	if bg != nil {
 		tb.background = *bg
 	}
@@ -186,7 +186,7 @@ func (tb *TextBox) SetBackground(bg, bgHover, bgClicked *consolecolor.Color) {
 
 // SetForeground sets the foreground colors for the textbox states. Parameters that
 // are nil will be ignored and not set.
-func (tb *TextBox) SetForeground(f, fInactive *consolecolor.Color) {
+func (tb *TextBox) SetForeground(f, fInactive *concolor.Color) {
 	if f != nil {
 		tb.foreground = *f
 	}

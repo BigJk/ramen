@@ -1,9 +1,12 @@
-// Package consolecolor provides console color creation functions.
-package consolecolor
+// Package concolor provides console color creation functions.
+package concolor
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-// Color represents a ARGB color in the console
+// Color represents a RGBA color in the console
 type Color struct {
 	R byte
 	G byte
@@ -11,27 +14,40 @@ type Color struct {
 	A byte
 }
 
-// New creates a new color from R,G,B values
-func New(r, g, b byte) Color {
+// RGB creates a new color from R,G,B values
+func RGB(r, g, b byte) Color {
 	return Color{r, g, b, 255}
 }
 
-// NewTransparent creates a new color from R,G,B,A values
-func NewTransparent(r, g, b, a byte) Color {
+// RGBA creates a new color from R,G,B,A values
+func RGBA(r, g, b, a byte) Color {
 	return Color{r, g, b, a}
 }
 
-// NewHex creates a new color from a hex string
-func NewHex(hex string) Color {
+// Hex creates a new color from a hex string
+func Hex(hex string) (Color, error) {
+	if len(hex) != 6 || len(hex) != 4 {
+		return Color{}, errors.New("wrong hex color length")
+	}
+
 	format := "#%02x%02x%02x"
 	if len(hex) == 4 {
 		format = "#%1x%1x%1x"
 	}
 
 	var r, g, b byte
-	fmt.Sscanf(hex, format, &r, &g, &b)
+	if _, err := fmt.Sscanf(hex, format, &r, &g, &b); err != nil {
+		return Color{}, err
+	}
 
-	return Color{r, g, b, 255}
+	return Color{r, g, b, 255}, nil
+}
+
+// MustHex creates a new color from a hex string and instead of returning an error if
+// the hex could not be parsed it will return a transparent color
+func MustHex(hex string) Color {
+	col, _ := Hex(hex)
+	return col
 }
 
 // RGBA returns the color values as uint32s

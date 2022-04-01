@@ -1,8 +1,8 @@
 package components
 
 import (
+	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/console"
-	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -19,13 +19,13 @@ type Button struct {
 	clickedCallback ClickedCallback
 	transformer     []t.Transformer
 
-	background        consolecolor.Color
-	backgroundHover   consolecolor.Color
-	backgroundClicked consolecolor.Color
+	background        concolor.Color
+	backgroundHover   concolor.Color
+	backgroundClicked concolor.Color
 
-	foreground        consolecolor.Color
-	foregroundHover   consolecolor.Color
-	foregroundClicked consolecolor.Color
+	foreground        concolor.Color
+	foregroundHover   concolor.Color
+	foregroundClicked concolor.Color
 
 	state ComponentState
 }
@@ -72,8 +72,8 @@ func (b *Button) Draw(con *console.Console, timeElapsed float64) {
 	tY := b.Y + b.Height/2
 	tX := b.X + b.Width/2 - len(b.text)/2
 
-	var bgColor consolecolor.Color
-	var fColor consolecolor.Color
+	var bgColor concolor.Color
+	var fColor concolor.Color
 	switch b.state {
 	case ComponentIdle:
 		bgColor = b.background
@@ -98,7 +98,7 @@ func (b *Button) Draw(con *console.Console, timeElapsed float64) {
 
 // SetBackground sets the background colors for the button states. Parameters that
 // are nil will be ignored and not set.
-func (b *Button) SetBackground(bg, bgHover, bgClicked *consolecolor.Color) {
+func (b *Button) SetBackground(bg, bgHover, bgClicked *concolor.Color) {
 	if bg != nil {
 		b.background = *bg
 	}
@@ -114,7 +114,7 @@ func (b *Button) SetBackground(bg, bgHover, bgClicked *consolecolor.Color) {
 
 // SetForeground sets the foreground colors for the button states. Parameters that
 // are nil will be ignored and not set.
-func (b *Button) SetForeground(f, fHover, fClicked *consolecolor.Color) {
+func (b *Button) SetForeground(f, fHover, fClicked *concolor.Color) {
 	if f != nil {
 		b.foreground = *f
 	}

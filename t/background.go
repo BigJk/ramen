@@ -2,12 +2,12 @@ package t
 
 import (
 	"github.com/BigJk/ramen"
-	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/concolor"
 )
 
 // BackgroundTransform sets the background color of a cell
 type BackgroundTransform struct {
-	color consolecolor.Color
+	color concolor.Color
 }
 
 // Transform sets the background color of a cell
@@ -17,6 +17,6 @@ func (b BackgroundTransform) Transform(cell *ramen.Cell) error {
 }
 
 // Background creates a new transformer that sets the background color of a cell to the given color
-func Background(newBackground consolecolor.Color) BackgroundTransform {
+func Background(newBackground concolor.Color) BackgroundTransform {
 	return BackgroundTransform{newBackground}
 }

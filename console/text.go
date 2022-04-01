@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/concolor"
 
 	"github.com/BigJk/ramen/t"
 )
@@ -57,23 +57,23 @@ func ParseColoredText(text string) (string, ColorSections) {
 		if len(match[4]) == 0 {
 			switch match[2] {
 			case "f":
-				cs.Transformer = append(cs.Transformer, t.Foreground(consolecolor.NewHex(match[3])))
+				cs.Transformer = append(cs.Transformer, t.Foreground(concolor.MustHex(match[3])))
 			case "b":
-				cs.Transformer = append(cs.Transformer, t.Background(consolecolor.NewHex(match[3])))
+				cs.Transformer = append(cs.Transformer, t.Background(concolor.MustHex(match[3])))
 			}
 		} else if len(match) == 8 {
 			switch match[2] {
 			case "f":
-				cs.Transformer = append(cs.Transformer, t.Foreground(consolecolor.NewHex(match[3])))
+				cs.Transformer = append(cs.Transformer, t.Foreground(concolor.MustHex(match[3])))
 			case "b":
-				cs.Transformer = append(cs.Transformer, t.Background(consolecolor.NewHex(match[3])))
+				cs.Transformer = append(cs.Transformer, t.Background(concolor.MustHex(match[3])))
 			}
 
 			switch match[6] {
 			case "f":
-				cs.Transformer = append(cs.Transformer, t.Foreground(consolecolor.NewHex(match[7])))
+				cs.Transformer = append(cs.Transformer, t.Foreground(concolor.MustHex(match[7])))
 			case "b":
-				cs.Transformer = append(cs.Transformer, t.Background(consolecolor.NewHex(match[7])))
+				cs.Transformer = append(cs.Transformer, t.Background(concolor.MustHex(match[7])))
 			}
 		}
 

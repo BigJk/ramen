@@ -3,8 +3,8 @@ package main
 import (
 	"image/color"
 
+	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/console"
-	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -63,7 +63,7 @@ func main() {
 		i := 0
 		for y := 1; y < con.Height-1; y++ {
 			for x := 1; x < con.Width-1; x++ {
-				con.Transform(x, y, t.Char(i), t.Foreground(consolecolor.New(255, 0, 0)))
+				con.Transform(x, y, t.Char(i), t.Foreground(concolor.RGB(255, 0, 0)))
 				i++
 			}
 		}

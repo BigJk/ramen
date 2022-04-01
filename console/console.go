@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/BigJk/ramen"
-	"github.com/BigJk/ramen/consolecolor"
+	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -18,7 +18,7 @@ import (
 )
 
 var emptyCell = ramen.Cell{
-	Foreground: consolecolor.New(255, 255, 255),
+	Foreground: concolor.RGB(255, 255, 255),
 }
 
 // Console represents a emulated console view.
