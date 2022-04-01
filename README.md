@@ -42,12 +42,12 @@ go get github.com/BigJk/ramen/...
 package main
 
 import (
-  "github.com/BigJk/ramen/console"
+  "fmt"
   "github.com/BigJk/ramen/concolor"
+  "github.com/BigJk/ramen/console"
   "github.com/BigJk/ramen/font"
   "github.com/BigJk/ramen/t"
   "github.com/hajimehoshi/ebiten/v2"
-  "fmt"
 )
 
 func main() {
@@ -86,7 +86,6 @@ func main() {
   // start the console with a scaling of 1
   con.Start(1)
 }
-
 ```
 
 ## Inlined Color Definitions
