@@ -30,7 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	con, err := console.New(xp.Width, xp.Height, font.DefaultFont, "REXPaint Viewer")
+	con, err := console.New(xp.Width, xp.Height, font.DefaultFont, "ramen - REXPaint Viewer")
 	if err != nil {
 		panic(err)
 	}
