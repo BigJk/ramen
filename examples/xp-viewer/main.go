@@ -30,12 +30,7 @@ func main() {
 		panic(err)
 	}
 
-	font, err := font.New("../../fonts/terminus-11x11.png", 11, 11)
-	if err != nil {
-		panic(err)
-	}
-
-	con, err := console.New(xp.Width, xp.Height, font, "REXPaint Viewer")
+	con, err := console.New(xp.Width, xp.Height, font.DefaultFont, "REXPaint Viewer")
 	if err != nil {
 		panic(err)
 	}

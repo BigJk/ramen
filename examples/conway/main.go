@@ -35,12 +35,7 @@ func main() {
 		}
 	}
 
-	font, err := font.New("../../fonts/ti84-6x8.png", 6, 8)
-	if err != nil {
-		panic(err)
-	}
-
-	con, err := console.New(width, height, font, "ramen - conway's game of life")
+	con, err := console.New(width, height, font.DefaultFont, "ramen - conway's game of life")
 	if err != nil {
 		panic(err)
 	}
@@ -68,8 +63,8 @@ func main() {
 			if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
 				cx, cy := ebiten.CursorPosition()
 
-				bx := cx / font.TileWidth
-				by := cy / font.TileHeight
+				bx := cx / font.DefaultFont.TileWidth
+				by := cy / font.DefaultFont.TileHeight
 
 				board[bx][by] = true
 			} else {
