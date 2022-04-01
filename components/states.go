@@ -2,7 +2,7 @@ package components
 
 import (
 	"github.com/BigJk/ramen/console"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 // ComponentState represents generic states that components can use to define logic.

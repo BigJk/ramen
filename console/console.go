@@ -12,9 +12,9 @@ import (
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
-	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 var emptyCell = ramen.Cell{
@@ -49,6 +49,18 @@ type Console struct {
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
 
+func (c *Console) Update() error {
+	return nil
+}
+
+func (c *Console) Draw(screen *ebiten.Image) {
+	_ = c.update(screen)
+}
+
+func (c *Console) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return c.Width * c.Font.TileWidth, c.Height * c.Font.TileHeight
+}
+
 // New creates a new console.
 func New(width, height int, font *font.Font, title string) (*Console, error) {
 	buf := make([][]ramen.Cell, width)
@@ -61,11 +73,7 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 
 	lines := make([]*ebiten.Image, width)
 	for i := range lines {
-		line, err := ebiten.NewImage(font.TileWidth, height*font.TileHeight, ebiten.FilterNearest)
-		if err != nil {
-			return nil, err
-		}
-		lines[i] = line
+		lines[i] = ebiten.NewImage(font.TileWidth, height*font.TileHeight)
 	}
 
 	return &Console{
@@ -83,7 +91,9 @@ func (c *Console) Start(scale float64) error {
 	if c.isSubConsole {
 		return fmt.Errorf("only the main console can be started")
 	}
-	return ebiten.Run(c.update, c.Width*c.Font.TileWidth, c.Height*c.Font.TileHeight, scale, c.Title)
+
+	ebiten.SetWindowSize(int(float64(c.Width*c.Font.TileWidth)*scale), int(float64(c.Height*c.Font.TileHeight)*scale))
+	return ebiten.RunGame(c)
 }
 
 // SetTickHook will apply a hook that gets triggered every tick, even if drawing is skipped in this tick.
@@ -373,7 +383,7 @@ func (c *Console) draw(screen *ebiten.Image, timeElapsed float64, offsetX, offse
 					op.ColorM.Scale(c.buffer[x][y].Foreground.Floats())
 				}
 				op.GeoM.Translate(float64((offsetX+c.x+x)*c.Font.TileWidth), float64((offsetY+c.y+y)*c.Font.TileHeight))
-				_ = screen.DrawImage(charImage, &op)
+				screen.DrawImage(charImage, &op)
 			}
 		}
 	}
@@ -451,7 +461,7 @@ func (c *Console) elapsedTPS() float64 {
 }
 
 func (c *Console) elapsedFPS() float64 {
-	e := 1.0 / math.Min(float64(ebiten.FPS), ebiten.CurrentFPS())
+	e := 1.0 / ebiten.CurrentFPS()
 	if e > math.MaxFloat64 {
 		e = 0
 	}
@@ -469,10 +479,6 @@ func (c *Console) update(screen *ebiten.Image) error {
 		if err := c.tickHook(c.elapsedTPS()); err != nil {
 			return err
 		}
-	}
-
-	if ebiten.IsDrawingSkipped() {
-		return nil
 	}
 
 	timeElapsed := c.elapsedFPS()

@@ -1,5 +1,8 @@
 module github.com/BigJk/ramen
 
-require github.com/hajimehoshi/ebiten v1.10.0-alpha.4
+go 1.18
 
-go 1.13
+require (
+	github.com/hajimehoshi/ebiten/v2 v2.2.5 // indirect
+	github.com/stretchr/testify v1.7.1 // indirect
+)

@@ -6,8 +6,12 @@ import (
 
 	"io"
 
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 )
 
 // Font represents a console font.
@@ -45,12 +49,7 @@ func NewFromReader(reader io.Reader, tileWidth, tileHeight int) (*Font, error) {
 		return nil, err
 	}
 
-	fontImage, err := ebiten.NewImageFromImage(img, ebiten.FilterNearest)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Font{"", fontImage, tileWidth, tileHeight, img.Bounds().Max.X / tileWidth, img.Bounds().Max.Y / tileHeight, make(map[int]bool)}, nil
+	return &Font{"", ebiten.NewImageFromImage(img), tileWidth, tileHeight, img.Bounds().Max.X / tileWidth, img.Bounds().Max.Y / tileHeight, make(map[int]bool)}, nil
 }
 
 // ToSubImage extracts the image of a given char from the base image of the font.

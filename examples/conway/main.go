@@ -8,7 +8,7 @@ import (
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 const (

@@ -4,8 +4,8 @@ import (
 	"github.com/BigJk/ramen/console"
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/t"
-	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 // ClickedCallback will be called if a click on the component happened.
