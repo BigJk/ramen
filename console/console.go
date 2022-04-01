@@ -49,18 +49,6 @@ type Console struct {
 	postRenderHook func(screen *ebiten.Image, timeElapsed float64) error
 }
 
-func (c *Console) Update() error {
-	return nil
-}
-
-func (c *Console) Draw(screen *ebiten.Image) {
-	_ = c.update(screen)
-}
-
-func (c *Console) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return c.Width * c.Font.TileWidth, c.Height * c.Font.TileHeight
-}
-
 // New creates a new console.
 func New(width, height int, font *font.Font, title string) (*Console, error) {
 	buf := make([][]ramen.Cell, width)
@@ -84,6 +72,30 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 		SubConsoles: make([]*Console, 0),
 		buffer:      buf,
 	}, nil
+}
+
+// Update proceeds the game state and is called every tick (1/60 [s] by default).
+// This is an ebiten function. Don't call it yourself!
+func (c *Console) Update() error {
+	if c.tickHook != nil {
+		if err := c.tickHook(c.elapsedTPS()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Draw draws the game screen and is called every frame (typically 1/60[s] for 60Hz display).
+// This is an ebiten function. Don't call it yourself!
+func (c *Console) Draw(screen *ebiten.Image) {
+	_ = c.update(screen)
+}
+
+// Layout returns size of drawable area inside window. This will be stretched to window sized.
+// This is an ebiten function. Don't call it yourself!
+func (c *Console) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return c.Width * c.Font.TileWidth, c.Height * c.Font.TileHeight
 }
 
 // Start will open the console window with the given scale.
@@ -475,12 +487,6 @@ func (c *Console) update(screen *ebiten.Image) error {
 	c.propagateMousePosition(mx/c.Font.TileWidth, my/c.Font.TileHeight)
 	c.propagateComponentUpdates(c.elapsedTPS())
 	c.mtx.RUnlock()
-
-	if c.tickHook != nil {
-		if err := c.tickHook(c.elapsedTPS()); err != nil {
-			return err
-		}
-	}
 
 	timeElapsed := c.elapsedFPS()
 
