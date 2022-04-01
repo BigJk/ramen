@@ -2,9 +2,9 @@
 
 <img src="https://i.imgur.com/glpKbxk.png" width="10" height="145" align="left" />
 
-[![Documentation](https://godoc.org/github.com/BigJk/ramen/console?status.svg)](http://godoc.org/github.com/BigJk/ramen/console) [![Go Report Card](https://goreportcard.com/badge/github.com/BigJk/ramen/console)](https://goreportcard.com/report/github.com/BigJk/ramen) [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
+[![Documentation](https://godoc.org/github.com/BigJk/ramen/console?status.svg)](http://godoc.org/github.com/BigJk/ramen/console) [![Go Report Card](https://goreportcard.com/badge/github.com/BigJk/ramen)](https://goreportcard.com/report/github.com/BigJk/ramen) [![Hex.pm](https://img.shields.io/hexpm/l/plug.svg)](LICENSE)
 
-**ramen** is a simple console emulator written in go that can be used to create various ascii / text (roguelike) games. It's based on the great **[ebiten](https://github.com/hajimehoshi/ebiten)** library and inspired by libraries like **[libtcod](https://bitbucket.org/libtcod/libtcod/wiki/Features)**.
+**ramen** is a simple console emulator written in go that can be used to create various ascii / text (roguelike) games. It's based on the great **[ebiten](https://github.com/hajimehoshi/ebiten)** library and inspired by libraries like **[libtcod](https://github.com/libtcod/libtcod)**.
 
 **Warning:** This is still a early version so api and features are not fixed yet. Bugs will happen!
 
