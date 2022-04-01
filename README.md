@@ -10,6 +10,10 @@
 
 <br>
 
+## 2022 Rework
+
+ramen will see a rework this year and hopefully arrive in a more stable and thought out version. As a first update I finally bumped ebiten to v2 and the go version to 1.18. 
+
 ## Features
 
 - PNG Fonts with more than 256 chars possible
@@ -42,7 +46,7 @@ import (
 	"github.com/BigJk/ramen/consolecolor"
 	"github.com/BigJk/ramen/font"
 	"github.com/BigJk/ramen/t"
-	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/v2"
 	"fmt"
 )
 
