@@ -158,17 +158,37 @@ func (c *Console) SetPriority(priority int) error {
 }
 
 // AddComponent adds a component that should be updated and rendered to the console.
+//
+// Attention: Don't use this function inside a callback from a component as this will
+// create a deadlock!
 func (c *Console) AddComponent(component Component) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
 	c.components[component.ID()] = component
-	c.mtx.Unlock()
 }
 
 // RemoveComponent removes a component from the console.
+//
+// Attention: Don't use this function inside a callback from a component as this will
+// create a deadlock!
 func (c *Console) RemoveComponent(component Component) {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
 	delete(c.components, component.ID())
-	c.mtx.Unlock()
+}
+
+// HasComponent checks if component is mounted to the console.
+//
+// Attention: Don't use this function inside a callback from a component as this will
+// create a deadlock!
+func (c *Console) HasComponent(component Component) bool {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+
+	_, ok := c.components[component.ID()]
+	return ok
 }
 
 // CreateSubConsole creates a new sub-console.

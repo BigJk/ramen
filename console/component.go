@@ -17,7 +17,7 @@ type ComponentAttributes interface {
 	SetFocus(value bool)
 }
 
-// ComponentLogic represents a object that can be updated and drawn on a console.
+// ComponentLogic represents an object that can be updated and drawn on a console.
 type ComponentLogic interface {
 	Update(con *Console, timeElapsed float64) bool
 	Draw(con *Console, timeElapsed float64)

@@ -14,7 +14,7 @@ import (
 type TextChangeCallback func(text string)
 
 // EnterCallback will be called if the enter key has been pressed.
-type EnterCallback func()
+type EnterCallback func(text string)
 
 // TextBox represents a box that you can type in.
 type TextBox struct {
@@ -86,7 +86,7 @@ func (tb *TextBox) Update(con *console.Console, timeElapsed float64) bool {
 	tb.mtx.Unlock()
 
 	if tb.enterCallback != nil && inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
-		tb.enterCallback()
+		tb.enterCallback(tb.text)
 	}
 
 	return true
