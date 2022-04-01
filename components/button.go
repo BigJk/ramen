@@ -91,39 +91,38 @@ func (b *Button) Draw(con *console.Console, timeElapsed float64) {
 		fColor = b.foregroundHover
 	}
 
-	con.Clear(b.X, b.Y, b.Width, b.Height, t.Background(bgColor))
+	_ = con.Clear(b.X, b.Y, b.Width, b.Height, t.Background(bgColor))
 	con.Print(tX, tY, b.text, t.Foreground(fColor))
-
 }
 
 // SetBackground sets the background colors for the button states. Parameters that
 // are nil will be ignored and not set.
-func (b *Button) SetBackground(bg, bgHover, bgClicked *concolor.Color) {
-	if bg != nil {
-		b.background = *bg
+func (b *Button) SetBackground(idle, hover, clicked *concolor.Color) {
+	if idle != nil {
+		b.background = *idle
 	}
 
-	if bgHover != nil {
-		b.backgroundHover = *bgHover
+	if hover != nil {
+		b.backgroundHover = *hover
 	}
 
-	if bgClicked != nil {
-		b.backgroundClicked = *bgClicked
+	if clicked != nil {
+		b.backgroundClicked = *clicked
 	}
 }
 
 // SetForeground sets the foreground colors for the button states. Parameters that
 // are nil will be ignored and not set.
-func (b *Button) SetForeground(f, fHover, fClicked *concolor.Color) {
-	if f != nil {
-		b.foreground = *f
+func (b *Button) SetForeground(idle, hover, clicked *concolor.Color) {
+	if idle != nil {
+		b.foreground = *idle
 	}
 
-	if fHover != nil {
-		b.foregroundHover = *fHover
+	if hover != nil {
+		b.foregroundHover = *hover
 	}
 
-	if fClicked != nil {
-		b.foregroundClicked = *fClicked
+	if clicked != nil {
+		b.foregroundClicked = *clicked
 	}
 }

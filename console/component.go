@@ -1,9 +1,14 @@
 package console
 
-import "sync"
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+)
 
 // ComponentAttributes represents a closable object with a position and size.
 type ComponentAttributes interface {
+	ID() string
 	Position() (int, int)
 	Size() (int, int)
 	ShouldClose() bool
@@ -27,9 +32,14 @@ type ComponentBase struct {
 	Height int
 
 	mtx   sync.Mutex
+	id    string
 	show  bool
 	close bool
 	focus bool
+}
+
+func (cb *ComponentBase) ID() string {
+	return cb.id
 }
 
 // Position returns the position of the component.
@@ -91,6 +101,7 @@ func NewComponentBase(x, y, width, height int) *ComponentBase {
 		Y:      y,
 		Width:  width,
 		Height: height,
+		id:     fmt.Sprint(rand.Int63()),
 		show:   true,
 	}
 }

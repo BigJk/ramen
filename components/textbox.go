@@ -170,29 +170,29 @@ func (tb *TextBox) GetText() string {
 
 // SetBackground sets the background colors for textbox. Parameters that
 // are nil will be ignored and not set.
-func (tb *TextBox) SetBackground(bg, bgHover, bgClicked *concolor.Color) {
-	if bg != nil {
-		tb.background = *bg
+func (tb *TextBox) SetBackground(idle, hover, clicked *concolor.Color) {
+	if idle != nil {
+		tb.background = *idle
 	}
 
-	if bgHover != nil {
-		tb.backgroundHover = *bgHover
+	if hover != nil {
+		tb.backgroundHover = *hover
 	}
 
-	if bgClicked != nil {
-		tb.backgroundClicked = *bgClicked
+	if clicked != nil {
+		tb.backgroundClicked = *clicked
 	}
 }
 
 // SetForeground sets the foreground colors for the textbox states. Parameters that
 // are nil will be ignored and not set.
-func (tb *TextBox) SetForeground(f, fInactive *concolor.Color) {
-	if f != nil {
-		tb.foreground = *f
+func (tb *TextBox) SetForeground(active, inactive *concolor.Color) {
+	if active != nil {
+		tb.foreground = *active
 	}
 
-	if fInactive != nil {
-		tb.foregroundInactive = *fInactive
+	if inactive != nil {
+		tb.foregroundInactive = *inactive
 	}
 }
 

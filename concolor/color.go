@@ -63,6 +63,11 @@ func (c Color) RGBA() (r, g, b, a uint32) {
 	return
 }
 
+// P returns a pointer to the color
+func (c Color) P() *Color {
+	return &c
+}
+
 // Floats returns the color values as floats (0f - 1f)
 func (c Color) Floats() (r, g, b, a float64) {
 	return float64(c.R) / 0xff, float64(c.G) / 0xff, float64(c.B) / 0xff, float64(c.A) / 0xff

@@ -42,7 +42,7 @@ type Console struct {
 	mouseX int
 	mouseY int
 
-	components []Component
+	components map[string]Component
 
 	tickHook       func(timeElapsed float64) error
 	preRenderHook  func(screen *ebiten.Image, timeElapsed float64) error
@@ -71,12 +71,19 @@ func New(width, height int, font *font.Font, title string) (*Console, error) {
 		Font:        font,
 		SubConsoles: make([]*Console, 0),
 		buffer:      buf,
+		components:  map[string]Component{},
 	}, nil
 }
 
 // Update proceeds the game state and is called every tick (1/60 [s] by default).
 // This is an ebiten function. Don't call it yourself!
 func (c *Console) Update() error {
+	c.mtx.RLock()
+	mx, my := ebiten.CursorPosition()
+	c.propagateMousePosition(mx/c.Font.TileWidth, my/c.Font.TileHeight)
+	c.propagateComponentUpdates(c.elapsedTPS())
+	c.mtx.RUnlock()
+
 	if c.tickHook != nil {
 		if err := c.tickHook(c.elapsedTPS()); err != nil {
 			return err
@@ -153,7 +160,14 @@ func (c *Console) SetPriority(priority int) error {
 // AddComponent adds a component that should be updated and rendered to the console.
 func (c *Console) AddComponent(component Component) {
 	c.mtx.Lock()
-	c.components = append(c.components, component)
+	c.components[component.ID()] = component
+	c.mtx.Unlock()
+}
+
+// RemoveComponent removes a component from the console.
+func (c *Console) RemoveComponent(component Component) {
+	c.mtx.Lock()
+	delete(c.components, component.ID())
 	c.mtx.Unlock()
 }
 
@@ -205,14 +219,15 @@ func (c *Console) RemoveSubConsole(con *Console) error {
 
 // ClearAll clears the whole console. If no transformer are specified the console will be cleared
 // to the default cell look.
-func (c *Console) ClearAll(transformer ...t.Transformer) {
-	c.Clear(0, 0, c.Width, c.Height, transformer...)
+func (c *Console) ClearAll(transformer ...t.Transformer) error {
+	return c.Clear(0, 0, c.Width, c.Height, transformer...)
 }
 
 // Clear clears part of the console. If no transformer are specified the console will be cleared
 // to the default cell look.
 func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) error {
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
 	for px := 0; px < width; px++ {
 		for py := 0; py < height; py++ {
@@ -235,8 +250,6 @@ func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) e
 		}
 	}
 
-	c.mtx.Unlock()
-
 	return nil
 }
 
@@ -250,6 +263,7 @@ func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 	}
 
 	c.mtx.Lock()
+	defer c.mtx.Unlock()
 
 	for i := range transformer {
 		err := transformer[i].Transform(&c.buffer[x][y])
@@ -257,8 +271,6 @@ func (c *Console) Transform(x, y int, transformer ...t.Transformer) error {
 			return err
 		}
 	}
-
-	c.mtx.Unlock()
 
 	return nil
 }
@@ -370,9 +382,9 @@ func (c *Console) checkOutOfBounds(x, y int) error {
 }
 
 func (c *Console) draw(screen *ebiten.Image, timeElapsed float64, offsetX, offsetY int) {
-	for i := range c.components {
-		if c.components[i].ShouldDraw() {
-			c.components[i].Draw(c, timeElapsed)
+	for id := range c.components {
+		if c.components[id].ShouldDraw() {
+			c.components[id].Draw(c, timeElapsed)
 		}
 	}
 
@@ -422,46 +434,22 @@ func (c *Console) propagateMousePosition(x, y int) {
 }
 
 func (c *Console) propagateComponentUpdates(timeElapsed float64) {
-	setFocused := false
-
-focusUpdate:
-	for i := range c.components {
-		if !c.components[i].ShouldDraw() {
-			c.components[i].SetFocus(false)
-		} else if c.components[i].FocusOnClick() && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-			x, y := c.components[i].Position()
-			w, h := c.components[i].Size()
-			c.components[i].SetFocus(c.MouseInArea(x, y, w, h))
-		} else if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
-			if c.components[i].IsFocused() {
-				c.components[i].SetFocus(false)
-				for j := range c.components {
-					if c.components[(j+i+1)%len(c.components)].ShouldDraw() {
-						c.components[(j+i+1)%len(c.components)].SetFocus(true)
-						setFocused = true
-						break focusUpdate
-					}
-				}
-			}
+	for id := range c.components {
+		if !c.components[id].ShouldDraw() {
+			c.components[id].SetFocus(false)
+		} else if c.components[id].FocusOnClick() && inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			x, y := c.components[id].Position()
+			w, h := c.components[id].Size()
+			c.components[id].SetFocus(c.MouseInArea(x, y, w, h))
 		}
 
-		if inpututil.IsKeyJustPressed(ebiten.KeyTab) && !setFocused {
-			for i := range c.components {
-				if c.components[i].ShouldDraw() {
-					c.components[i].SetFocus(true)
-					break
-				}
-			}
-		}
-
-		if c.components[i].ShouldClose() || !c.components[i].Update(c, timeElapsed) {
-			c.components = append(c.components[:i], c.components[i+1:]...)
-			i--
+		if c.components[id].ShouldClose() || !c.components[id].Update(c, timeElapsed) {
+			delete(c.components, id)
 		}
 	}
 
-	for i := range c.SubConsoles {
-		c.SubConsoles[i].propagateComponentUpdates(timeElapsed)
+	for id := range c.SubConsoles {
+		c.SubConsoles[id].propagateComponentUpdates(timeElapsed)
 	}
 }
 
@@ -482,12 +470,6 @@ func (c *Console) elapsedFPS() float64 {
 }
 
 func (c *Console) update(screen *ebiten.Image) error {
-	c.mtx.RLock()
-	mx, my := ebiten.CursorPosition()
-	c.propagateMousePosition(mx/c.Font.TileWidth, my/c.Font.TileHeight)
-	c.propagateComponentUpdates(c.elapsedTPS())
-	c.mtx.RUnlock()
-
 	timeElapsed := c.elapsedFPS()
 
 	if c.preRenderHook != nil {
