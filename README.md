@@ -36,6 +36,31 @@ ramen will see a rework this year and hopefully arrive in a more stable and thou
 go get github.com/BigJk/ramen/...
 ```
 
+## Transformer
+
+In ramen you change the content of the console by applying transformations to cells. Examples would be:
+
+```go
+// set one cell at position 10,15 to a green @:
+con.Transform(10, 15, t.CharByte('@'), t.Foreground(concolor.RGB(0, 255, 0)))
+
+// change the background of the area 0,0 with the width and height of 25,25:
+con.TransformArea(0, 0, 25, 25, t.Background(concolor.RGBA(255, 255, 255, 20)))
+
+// change the background of all the cells:
+con.TransformAll(t.Background(concolor.RGBA(255, 255, 255, 10)))
+```
+
+All transformer functions accept objects that implement the **t.Transformer** interface, so it's also possible to create transformers with custom behaviour by implementing that interface.
+
+## Inlined Color Definitions
+
+There are also convenient string printing functions. The **console.Print** function supports parsing of inlined color definitions that can change the forground and background color of parts of the string.
+
+``[[f:#ff0000]]red foreground\n[[f:#ffffff|b:#000000]]white foreground and black background\n[[b:#00ff00]]green background``
+
+<img src="./.github/screen_colored_string.png" width="400">
+
 ## Example
 
 ```go
@@ -77,24 +102,19 @@ func main() {
   // The timeDelta parameter is the elapsed time in seconds
   // since the last frame.
   con.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
-    con.ClearAll(t.Background(concolor.RGB(50, 50, 50)))
+    con.ClearAll() // clear console 
+    con.TransformAll(t.Background(concolor.RGB(50, 50, 50))) // set the background
+	
     con.Print(2, 2, "Hello!\nTEST\n Line 3", t.Foreground(concolor.RGB(0, 255, 0)), t.Background(concolor.RGB(255, 0, 0)))
     con.Print(2, 7, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nElapsed: %0.4f", ebiten.CurrentFPS(), ebiten.CurrentFPS(), timeDelta))
-    return nil
+    
+	return nil
   })
 
   // start the console with a scaling of 1
   con.Start(1)
 }
 ```
-
-## Inlined Color Definitions
-
-The **console.Print** function supports parsing of inlined color definitions that can change the forground and background color of parts of the string.
-
-``[[f:#ff0000]]red foreground\n[[f:#ffffff|b:#000000]]white foreground and black background\n[[b:#00ff00]]green background``
-
-<img src="./.github/screen_colored_string.png" width="400">
 
 ## Screenshots
 
