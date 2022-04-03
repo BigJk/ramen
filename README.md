@@ -107,8 +107,8 @@ func main() {
 	
     con.Print(2, 2, "Hello!\nTEST\n Line 3", t.Foreground(concolor.RGB(0, 255, 0)), t.Background(concolor.RGB(255, 0, 0)))
     con.Print(2, 7, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nElapsed: %0.4f", ebiten.CurrentFPS(), ebiten.CurrentFPS(), timeDelta))
-    
-	return nil
+	
+    return nil
   })
 
   // start the console with a scaling of 1
