@@ -15,7 +15,7 @@ func main() {
 		panic(err)
 	}
 
-	// Create a "Test Button" button.
+	// create a "Test Button" button.
 	btn := components.NewButton(5, 5, 15, 5, "Test Button", func() {
 		fmt.Println("Button Pressed!")
 	})
@@ -23,7 +23,7 @@ func main() {
 	btn.SetForeground(concolor.White.P(), concolor.White.P(), concolor.White.P())
 	con.AddComponent(btn)
 
-	// Create a Textbox.
+	// create a Textbox.
 	txtInput := components.NewTextbox(5, 12, 15, 1)
 	txtInput.SetBackground(concolor.RGB(50, 50, 50).P(), concolor.RGB(70, 70, 70).P(), concolor.RGB(30, 30, 30).P())
 	txtInput.SetForeground(concolor.White.P(), concolor.RGB(90, 90, 90).P())
@@ -33,15 +33,16 @@ func main() {
 	})
 	con.AddComponent(txtInput)
 
-	// Create a "Toggle Button" button that will hide and un-hide the first button.
+	// create a "Toggle Button" button that will hide and un-hide the first button.
 	btnHide := components.NewButton(5, 15, 15, 5, "Toggle Button", func() {
 		btn.Show(!btn.ShouldDraw())
+		fmt.Println("Button State:", btn.ShouldDraw())
 	})
 	btnHide.SetBackground(concolor.RGB(50, 50, 50).P(), concolor.RGB(70, 70, 70).P(), concolor.RGB(30, 30, 30).P())
 	btnHide.SetForeground(concolor.White.P(), concolor.White.P(), concolor.White.P())
 	con.AddComponent(btnHide)
 
-	// Just clear on each render
+	// just clear on each render
 	con.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
 		con.ClearAll()
 		return nil

@@ -237,15 +237,23 @@ func (c *Console) RemoveSubConsole(con *Console) error {
 	return fmt.Errorf("sub-console not found")
 }
 
-// ClearAll clears the whole console. If no transformer are specified the console will be cleared
-// to the default cell look.
-func (c *Console) ClearAll(transformer ...t.Transformer) error {
-	return c.Clear(0, 0, c.Width, c.Height, transformer...)
+// ClearAll clears the whole console.
+func (c *Console) ClearAll() error {
+	return c.TransformAll(t.Cell(emptyCell))
 }
 
-// Clear clears part of the console. If no transformer are specified the console will be cleared
-// to the default cell look.
-func (c *Console) Clear(x, y, width, height int, transformer ...t.Transformer) error {
+// Clear clears part of the console.
+func (c *Console) Clear(x, y, width, height int) error {
+	return c.TransformArea(x, y, width, height, t.Cell(emptyCell))
+}
+
+// TransformAll applies the given transformers to all cells in the console.
+func (c *Console) TransformAll(transformer ...t.Transformer) error {
+	return c.TransformArea(0, 0, c.Width, c.Height, transformer...)
+}
+
+// TransformArea applies the given transformers to all cells in the given area.
+func (c *Console) TransformArea(x, y, width, height int, transformer ...t.Transformer) error {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
 

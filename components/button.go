@@ -91,7 +91,7 @@ func (b *Button) Draw(con *console.Console, timeElapsed float64) {
 		fColor = b.foregroundHover
 	}
 
-	_ = con.Clear(b.X, b.Y, b.Width, b.Height, t.Background(bgColor))
+	_ = con.TransformArea(b.X, b.Y, b.Width, b.Height, t.Background(bgColor))
 	con.Print(tX, tY, b.text, t.Foreground(fColor))
 }
 

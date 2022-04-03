@@ -125,7 +125,7 @@ func (tb *TextBox) Draw(con *console.Console, timeElapsed float64) {
 		fColor = tb.foreground
 	}
 
-	con.Clear(tb.X, tb.Y, tb.Width, tb.Height, t.Background(bgColor))
+	con.TransformArea(tb.X, tb.Y, tb.Width, tb.Height, t.Background(bgColor))
 
 	if tb.blink < 0.5 && tb.IsFocused() {
 		text += "_"

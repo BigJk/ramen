@@ -69,7 +69,7 @@ func main() {
 	}
 
 	/*
-		Move player on key press
+		move player on key press
 	*/
 
 	rootView.SetTickHook(func(timeElapsed float64) error {
@@ -93,28 +93,32 @@ func main() {
 	})
 
 	/*
-		Render
+		render
 	*/
 
 	rootView.SetPreRenderHook(func(screen *ebiten.Image, timeDelta float64) error {
 		/*
-			Clear console
+			clear console
 		*/
 
-		rootView.ClearAll(t.Background(concolor.RGB(50, 50, 50)))
-		worldView.ClearAll(t.Background(concolor.RGB(55, 55, 55)), t.Char(0))
+		rootView.ClearAll()
+		rootView.TransformAll(t.Background(concolor.RGB(50, 50, 50)))
+
+		worldView.ClearAll()
+		worldView.TransformAll(t.Background(concolor.RGB(55, 55, 55)), t.Char(0))
+
 		playerInfoView.ClearAll()
 
 		/*
-			Draw header
+			draw header
 		*/
 
-		rootView.Clear(0, 0, rootView.Width, 1, t.Background(concolor.RGB(80, 80, 80)))
+		rootView.TransformArea(0, 0, rootView.Width, 1, t.Background(concolor.RGB(80, 80, 80)))
 		rootView.Print(2, 0, "World View", t.Foreground(concolor.White))
 		rootView.Print(worldView.Width+2, 0, "Player Info", t.Foreground(concolor.White))
 
 		/*
-			Draw world
+			draw world
 		*/
 
 		midX := worldView.Width / 2
@@ -131,13 +135,13 @@ func main() {
 		}
 
 		/*
-			Draw player in the middle
+			draw player in the middle
 		*/
 
 		worldView.Transform(midX, midY, t.CharByte('@'), t.Foreground(concolor.Green))
 
 		/*
-			Draw player info
+			draw player info
 		*/
 		playerInfoView.PrintBounded(1, 1, playerInfoView.Width-2, 2, fmt.Sprintf("X=%d Y=%d", player.X, player.Y))
 

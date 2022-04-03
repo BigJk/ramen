@@ -1,13 +1,13 @@
 package main
 
 import (
+	"github.com/BigJk/ramen/concolor"
+	"github.com/BigJk/ramen/t"
 	"math/rand"
 	"time"
 
-	"github.com/BigJk/ramen/concolor"
 	"github.com/BigJk/ramen/console"
 	"github.com/BigJk/ramen/font"
-	"github.com/BigJk/ramen/t"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -23,7 +23,8 @@ var board [][]bool
 
 	Controls:
 		- Place cell: Left Mouse Button
-		- Step: Space
+		- Step:       Space
+		- Clear:      K
 */
 
 func main() {
@@ -40,38 +41,44 @@ func main() {
 		panic(err)
 	}
 
-	go func() {
-		for {
-			if ebiten.IsKeyPressed(ebiten.KeySpace) {
-				step()
-			}
+	con.SetTickHook(func(timeElapsed float64) error {
+		if ebiten.IsKeyPressed(ebiten.KeySpace) {
+			step()
+		}
 
-			if ebiten.IsKeyPressed(ebiten.KeyK) {
-				board = createBoard(width, height)
-			}
+		if ebiten.IsKeyPressed(ebiten.KeyK) {
+			board = createBoard(width, height)
+		}
 
-			for x := range board {
-				for y := range board[x] {
-					if board[x][y] {
-						con.Transform(x, y, t.Background(concolor.RGB(255, 255, 255)))
-					} else {
-						con.Transform(x, y, t.Background(concolor.RGB(0, 0, 0)))
-					}
+		if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
+			cx, cy := ebiten.CursorPosition()
+
+			bx := cx / font.DefaultFont.TileWidth
+			by := cy / font.DefaultFont.TileHeight
+
+			board[bx][by] = true
+		} else {
+			time.Sleep(time.Millisecond * 100)
+		}
+
+		return nil
+	})
+
+	con.SetPreRenderHook(func(screen *ebiten.Image, timeElapsed float64) error {
+		con.ClearAll()
+
+		for x := range board {
+			for y := range board[x] {
+				if board[x][y] {
+					con.Transform(x, y, t.Background(concolor.RGB(255, 255, 255)))
+				} else {
+					con.Transform(x, y, t.Background(concolor.RGB(0, 0, 0)))
 				}
 			}
-
-			if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) {
-				cx, cy := ebiten.CursorPosition()
-
-				bx := cx / font.DefaultFont.TileWidth
-				by := cy / font.DefaultFont.TileHeight
-
-				board[bx][by] = true
-			} else {
-				time.Sleep(time.Millisecond * 100)
-			}
 		}
-	}()
+
+		return nil
+	})
 
 	con.Start(1)
 }
