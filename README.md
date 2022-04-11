@@ -6,13 +6,9 @@
 
 **ramen** is a simple console emulator written in go that can be used to create various ascii / text (roguelike) games. It's based on the great **[ebiten](https://github.com/hajimehoshi/ebiten)** library and inspired by libraries like **[libtcod](https://github.com/libtcod/libtcod)**.
 
-**Warning:** This is still a early version so api and features are not fixed yet. Bugs will happen!
+**Warning:** API and features are not fixed yet. Bugs will happen!
 
 <br>
-
-## 2022 Rework
-
-ramen will see a rework this year and hopefully arrive in a more stable and thought out version. As a first update I finally bumped ebiten to v2 and the go version to 1.18. 
 
 ## Features
 
