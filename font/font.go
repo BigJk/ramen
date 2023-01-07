@@ -55,7 +55,7 @@ func NewFromReader(reader io.Reader, tileWidth, tileHeight int) (*Font, error) {
 // ToSubImage extracts the image of a given char from the base image of the font.
 func (f *Font) ToSubImage(char int) *ebiten.Image {
 	x := (int(char) % f.TileSizeX) * f.TileWidth
-	y := (int(char) / f.TileSizeY) * f.TileHeight
+	y := (int(char) / f.TileSizeX) * f.TileHeight
 
 	r := image.Rect(x, y, x+f.TileWidth, y+f.TileHeight)
 
